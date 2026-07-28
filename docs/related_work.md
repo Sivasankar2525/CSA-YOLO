@@ -28,9 +28,18 @@ worker-level intelligence. This framing must be explicit in the introduction.
 ## 3. Worker–PPE association (WPAM's neighborhood) — prior art EXISTS
 
 - **Helmet–head region matching + state tracking**, *Automation in Construction* 2025
-  ([S0926580525000275](https://www.sciencedirect.com/science/article/abs/pii/S0926580525000275))
-  — the closest known prior work: matches helmets to head regions and tracks wearing state.
-  **Single PPE type (helmet only), pairwise heuristic matching.**
+  ([S0926580525000275](https://www.sciencedirect.com/science/article/abs/pii/S0926580525000275),
+  [HKUST record](https://researchportal.hkust.edu.hk/en/publications/detection-of-helmet-use-among-construction-workers-via-helmet-hea/))
+  — the closest known prior work. **Method (Week 2 pass):** YOLOv9 detections +
+  YoloPose keypoints to extract the head region, helmet box matched to head region,
+  StrongSORT worker tracking, and preceding-frame matching integration to update
+  helmet-wearing state. Reports 98.89% accuracy on a **self-built (non-public) dataset**.
+  **Limits we exploit:** single PPE type (helmet only), pairwise matching (no joint
+  assignment), non-public evaluation data. → WPAM baseline: reimplement their
+  head-region matching rule; TSMM comparison: their preceding-frame integration.
+- **Fuzzy-logic-based helmet state tracking**, *Sensors* 2025
+  ([DOI](https://doi.org/10.3390/s25206487)) — temporal helmet-state smoothing via
+  fuzzy logic; a second temporal competitor for TSMM's related-work table. Helmet-only.
 - Pose-estimation-based PPE compliance, *Automation in Construction* 2025
   ([S0926580525002717](https://www.sciencedirect.com/science/article/pii/S0926580525002717))
   — cascaded detection + pose keypoints; classifies worker state into 4 categories.
