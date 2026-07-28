@@ -28,12 +28,37 @@ Tooling: `scripts/audit_dataset.py` over the registry `configs/datasets.yaml`.
   auxiliary head/helmet data (e.g., a helmet-vs-bare-head auxiliary training source)
   and for helmet-scale robustness. Many scenes are non-construction; if used, filter.
 
-## Gaps after Week 2 (drive Week 3)
+## CSS (Roboflow Construction Site Safety v1, via HF mirror) — Week 3 ✅
 
-1. **No `no_vest` / `boots` classes anywhere yet.** Candidates: Roboflow
-   "Construction Site Safety" (10 classes incl. NO-Hardhat/NO-Safety-Vest) — requires
-   a free Roboflow API key (user action), or SH17 (17 classes, manufacturing domain,
-   Kaggle — requires Kaggle credentials).
-2. **Video for TSMM still outstanding** (project risk #1) — collection must start.
-3. Merge recipe + unified class taxonomy to be scripted (`training/prepare_dataset.py`)
-   once the negative-class source is settled.
+- 398 images (307/57/34 official splits), COCO format, 17 classes. Public download,
+  no credentials (keremberke/construction-safety-object-detection).
+- Contributes the negative classes: `no-hardhat` (→ `no_helmet`), `no-safety vest`
+  (→ `no_vest`), plus person/hardhat/safety-vest.
+
+## Unified dataset: csa_ppe_v1 (Week 3)
+
+Recipe: `configs/merge.yaml` → `training/prepare_dataset.py` (deterministic, seed 42;
+manifest committed at `datasets/splits/csa_ppe_v1_manifest.csv`).
+Composition: CHV (official splits) + CSS (official splits) + SHWD capped at 400 images
+(head boxes: hat→helmet, bare-head→no_helmet; seeded 80/10/10).
+
+- 1,924 images — 1,516 train / 213 valid / 195 test; 11,433 instances.
+- person 3,956 · helmet 5,269 · vest 1,837 · no_helmet 333 · **no_vest 38** ⚠️
+
+### Critical finding: negative-class imbalance
+
+`no_vest` (38 instances) is untrainable as a detection class; `no_helmet` (333) is
+marginal. Design consequences (recorded now, before Phase 2):
+1. SCRM's primary evidence for "missing vest" must be **reasoned absence** (worker has
+   no associated vest detection over TSMM-confirmed frames), with `no_vest` detections
+   as corroboration only, never sole evidence.
+2. Detector training (Week 4) reports per-class results; `no_vest` is expected to be
+   weak and is disclosed as such — or dropped from v1 training if mAP is degenerate.
+3. Acquisition of the larger css-data (2.6k imgs, Kaggle credentials) remains open as
+   the fix for v2.
+
+## Remaining gaps
+
+1. **CSA-Vid annotation** — seed clips acquired (see `docs/csa_vid_protocol.md`);
+   annotation effort is the long pole.
+2. Boots/gloves classes deferred to v2 (data too thin in construction domain).

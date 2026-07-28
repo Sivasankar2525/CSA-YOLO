@@ -8,6 +8,8 @@ __pycache__/
 # Data & weights (tracked via docs/dataset_plan.md + configs, not git)
 datasets/*
 !datasets/README.md
+!datasets/LICENSES.md
+!datasets/splits/
 weights/*
 !weights/README.md
 

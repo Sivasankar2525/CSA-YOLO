@@ -1,0 +1,55 @@
+# Unified CSA-PPE dataset recipe (v1).
+# Deterministic: same config + seed → byte-identical splits (manifest committed to git).
+
+seed: 42
+output_dir: datasets/csa_ppe_v1
+
+# Unified taxonomy. Design notes:
+# - helmet/no_helmet and vest/no_vest as explicit classes (negative evidence for SCRM
+#   instead of pure absence-of-detection).
+# - boots/gloves excluded from v1: only 398 CSS images carry them — too thin to train;
+#   revisit if the manufacturing-domain PPEs set (11.9k imgs) is added as v2.
+class_names: [person, helmet, no_helmet, vest, no_vest]
+
+sources:
+  CHV:
+    format: yolo
+    labels_dir: datasets/raw/CHV/CHV_dataset/annotations
+    images_dir: datasets/raw/CHV/CHV_dataset/images
+    splits_dir: "datasets/raw/CHV/CHV_dataset/data split"   # official author splits
+    native_classes: [person, vest, helmet_blue, helmet_red, helmet_white, helmet_yellow]
+    class_map:
+      person: person
+      vest: vest
+      helmet_blue: helmet
+      helmet_red: helmet
+      helmet_white: helmet
+      helmet_yellow: helmet
+
+  CSS:
+    format: coco
+    split_dirs:
+      train: datasets/raw/CSS/train
+      valid: datasets/raw/CSS/valid
+      test: datasets/raw/CSS/test
+    class_map:
+      person: person
+      hardhat: helmet
+      no-hardhat: no_helmet
+      "safety vest": vest
+      "no-safety vest": no_vest
+      # barricade, dumpster, excavators, gloves, mask, no-mask, safety net,
+      # safety shoes, vehicles: out of scope for v1 → dropped by omission.
+
+  SHWD:
+    format: voc
+    annotations_dir: datasets/raw/SHWD/VOC2028/Annotations
+    images_dir: datasets/raw/SHWD/VOC2028/JPEGImages
+    # Head-region boxes: hat = helmeted head → helmet; person = bare head → no_helmet.
+    # Auxiliary only — capped to avoid swamping construction-domain data with
+    # crowded classroom scenes; random seeded 80/10/10 split.
+    max_images: 400
+    split_ratios: [0.8, 0.1, 0.1]
+    class_map:
+      hat: helmet
+      person: no_helmet
