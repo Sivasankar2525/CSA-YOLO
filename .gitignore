@@ -1,0 +1,21 @@
+# Environments
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Data & weights (tracked via docs/dataset_plan.md + configs, not git)
+datasets/*
+!datasets/README.md
+weights/*
+!weights/README.md
+
+# Experiment outputs
+results/*
+!results/README.md
+experiments/*
+!experiments/README.md
+
+# OS
+.DS_Store

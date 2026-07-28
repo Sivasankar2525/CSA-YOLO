@@ -1,0 +1,3 @@
+[submodule "external/icsd_yolo"]
+	path = external/icsd_yolo
+	url = https://github.com/PrintSC/code

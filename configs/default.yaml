@@ -1,0 +1,21 @@
+# CSA-YOLO default pipeline configuration.
+# Every script reads paths and hyperparameters from here — nothing is hardcoded.
+
+seed: 42
+
+paths:
+  weights_dir: weights
+  results_dir: results
+  datasets_dir: datasets
+
+detector:
+  # Week 1 verification uses a stock COCO-pretrained model; replaced by the
+  # fine-tuned ICSD-YOLO checkpoint in Phase 2 (see docs/adr/0001-backbone-strategy.md).
+  model: yolo11n.pt
+  confidence_threshold: 0.25
+  iou_threshold: 0.45
+  device: auto          # auto → mps on Apple Silicon, cuda if available, else cpu
+  image_size: 640
+
+logging:
+  level: INFO

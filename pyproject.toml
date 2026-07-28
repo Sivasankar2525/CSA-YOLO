@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "csa-yolo"
+version = "0.1.0"
+description = "Construction Safety Intelligence Framework: worker-PPE association, temporal safety memory, compliance reasoning, and explainable risk assessment on top of ICSD-YOLO."
+requires-python = ">=3.10"
+authors = [{ name = "Sivasankar B", email = "sivasankarb@karunya.edu.in" }]
+
+[tool.setuptools.packages.find]
+include = ["csa_yolo*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
