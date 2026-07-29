@@ -1,0 +1,24 @@
+# Experiment: YOLO11n trained from scratch (no COCO weights) on csa_ppe_v1.
+# Controls the pretrained-weights asymmetry: ICSD-YOLO has no released
+# weights, so the fair same-budget comparison is scratch-vs-scratch.
+name: yolo11n_scratch
+seed: 42
+
+model:
+  family: ultralytics
+  weights: yolo11n.yaml   # architecture only — random init
+
+data: datasets/csa_ppe_v1/data.yaml
+
+train:
+  epochs: 100
+  imgsz: 640
+  batch: 16
+  device: mps
+  workers: 4
+  patience: 25
+  val: true
+  plots: true
+
+output:
+  project: results/experiments

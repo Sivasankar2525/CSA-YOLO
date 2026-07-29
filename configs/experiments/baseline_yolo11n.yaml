@@ -1,0 +1,24 @@
+# Experiment: YOLO11n pretrained baseline fine-tuned on csa_ppe_v1.
+# The practical baseline of the ablation ladder (disclosed pretrained-weights
+# asymmetry vs the from-scratch ICSD runs — see docs/reports/week03.md).
+name: baseline_yolo11n
+seed: 42
+
+model:
+  family: ultralytics
+  weights: yolo11n.pt   # COCO-pretrained
+
+data: datasets/csa_ppe_v1/data.yaml
+
+train:
+  epochs: 100
+  imgsz: 640
+  batch: 16
+  device: mps
+  workers: 4
+  patience: 25
+  val: true
+  plots: true
+
+output:
+  project: results/experiments

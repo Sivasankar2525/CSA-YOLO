@@ -1,0 +1,39 @@
+# SHWD-inclusion ablation recipe: identical to merge.yaml minus the SHWD
+# source. Motivated by the Week 3 reviewer comment: SHWD boxes are HEAD
+# regions (hat = helmeted head, person = bare head), a different box semantic
+# from the full-object boxes of CHV/CSS — this recipe measures whether the
+# 400 capped SHWD images help or hurt helmet/no_helmet performance.
+# Same seed and taxonomy so CHV/CSS assignments are directly comparable.
+
+seed: 42
+output_dir: datasets/csa_ppe_v1_noshwd
+
+class_names: [person, helmet, no_helmet, vest, no_vest]
+
+sources:
+  CHV:
+    format: yolo
+    labels_dir: datasets/raw/CHV/CHV_dataset/annotations
+    images_dir: datasets/raw/CHV/CHV_dataset/images
+    splits_dir: "datasets/raw/CHV/CHV_dataset/data split"   # official author splits
+    native_classes: [person, vest, helmet_blue, helmet_red, helmet_white, helmet_yellow]
+    class_map:
+      person: person
+      vest: vest
+      helmet_blue: helmet
+      helmet_red: helmet
+      helmet_white: helmet
+      helmet_yellow: helmet
+
+  CSS:
+    format: coco
+    split_dirs:
+      train: datasets/raw/CSS/train
+      valid: datasets/raw/CSS/valid
+      test: datasets/raw/CSS/test
+    class_map:
+      person: person
+      hardhat: helmet
+      no-hardhat: no_helmet
+      "safety vest": vest
+      "no-safety vest": no_vest

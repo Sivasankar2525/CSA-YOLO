@@ -1,0 +1,26 @@
+# Experiment: restored ICSD-YOLO (x-arch @ n-scale) trained from scratch on
+# csa_ppe_v1. No pretrained weights exist for this architecture (ADR 0002);
+# compare against baseline_yolo11n under the same budget and against
+# yolo11n_scratch for the pretraining-free comparison.
+name: icsd_restored_scratch
+seed: 42
+
+model:
+  family: icsd
+  arch: x     # only shipped YAML matching the paper's described architecture
+  scale: n    # size class of the YOLO11n baseline (5.67M params / 17.7 GFLOPs)
+
+data: datasets/csa_ppe_v1/data.yaml
+
+train:
+  epochs: 100
+  imgsz: 640
+  batch: 16
+  device: mps
+  workers: 4
+  patience: 25
+  val: true
+  plots: true
+
+output:
+  project: results/experiments
