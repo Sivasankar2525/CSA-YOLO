@@ -1,1 +1,5 @@
-"""Worker identity tracking across frames (supports TSMM)."""
+"""Worker tracking module — maintains worker IDs across frames."""
+
+from .tracker import SimpleIOUTracker
+
+__all__ = ["SimpleIOUTracker"]
