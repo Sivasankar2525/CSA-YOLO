@@ -1,0 +1,231 @@
+{
+  "metadata": {
+    "timestamp": "FILL: ISO format datetime",
+    "git_commit": "FILL: git rev-parse HEAD",
+    "git_branch": "FILL: git rev-parse --abbrev-ref HEAD",
+    "python_version": "FILL: python --version",
+    "pytorch_version": "FILL: import torch; print(torch.__version__)",
+    "pytorch_device": "FILL: cuda/mps/cpu",
+    "cuda_version": "FILL: if applicable; otherwise 'N/A'"
+  },
+
+  "detector_training": {
+    "note": "Fill after running training/train_detector.py on Colab",
+    "experiments": {
+      "baseline_yolo11n": {
+        "status": "NOT YET MEASURED",
+        "config": "configs/experiments/baseline_yolo11n.yaml",
+        "model_family": "ultralytics",
+        "model_weights": "yolo11n.pt (COCO-pretrained)",
+        "dataset": "csa_ppe_v1",
+        "training_time_hours": null,
+        "best_epoch": null,
+        "metrics": {
+          "precision": null,
+          "recall": null,
+          "mAP@0.5": null,
+          "mAP@0.5:0.95": null,
+          "inference_fps": null,
+          "per_class_mAP50_95": {
+            "person": null,
+            "helmet": null,
+            "no_helmet": null,
+            "vest": null,
+            "no_vest": null
+          }
+        }
+      },
+      "yolo11n_scratch": {
+        "status": "NOT YET MEASURED",
+        "config": "configs/experiments/yolo11n_scratch.yaml",
+        "model_family": "ultralytics",
+        "model_weights": "yolo11n.yaml (random init)",
+        "dataset": "csa_ppe_v1",
+        "training_time_hours": null,
+        "best_epoch": null,
+        "metrics": {
+          "precision": null,
+          "recall": null,
+          "mAP@0.5": null,
+          "mAP@0.5:0.95": null,
+          "inference_fps": null
+        }
+      },
+      "icsd_restored_scratch": {
+        "status": "NOT YET MEASURED",
+        "config": "configs/experiments/icsd_restored_scratch.yaml",
+        "model_family": "icsd",
+        "model_arch": "x",
+        "model_scale": "n",
+        "dataset": "csa_ppe_v1",
+        "training_time_hours": null,
+        "best_epoch": null,
+        "metrics": {
+          "precision": null,
+          "recall": null,
+          "mAP@0.5": null,
+          "mAP@0.5:0.95": null,
+          "inference_fps": null
+        }
+      }
+    }
+  },
+
+  "wpam_evaluation": {
+    "note": "Fill after manually annotating ground truth for worker-PPE associations",
+    "status": "NOT YET MEASURED",
+    "ground_truth_samples": 0,
+    "metrics": {
+      "association_precision": null,
+      "association_recall": null,
+      "association_f1": null
+    }
+  },
+
+  "tracking_evaluation": {
+    "note": "Fill after annotating ground truth in video clip",
+    "status": "NOT YET MEASURED",
+    "ground_truth_video": null,
+    "metrics": {
+      "id_consistency_percent": null,
+      "id_switches_per_worker": null
+    }
+  },
+
+  "tsmm_evaluation": {
+    "note": "Temporal smoothing benefit — requires annotated video with occlusion events",
+    "status": "NOT YET MEASURED",
+    "ground_truth_video": null,
+    "ground_truth_violations": 0,
+    "metrics": {
+      "flicker_rate_without_tsmm_per_minute": null,
+      "flicker_rate_with_tsmm_per_minute": null,
+      "flicker_reduction_percent": null,
+      "false_positives_per_minute": null,
+      "detection_confirmation_latency_frames": null
+    }
+  },
+
+  "scrm_evaluation": {
+    "note": "Fill after manually labeling compliance ground truth (compliant/non-compliant)",
+    "status": "NOT YET MEASURED",
+    "ground_truth_samples": 0,
+    "metrics": {
+      "accuracy": null,
+      "precision": null,
+      "recall": null,
+      "f1": null
+    }
+  },
+
+  "cram_evaluation": {
+    "note": "CRAM IS A PROTOTYPE RULE-BASED MODEL. Not trained; evaluated via case studies only.",
+    "disclaimer": "NOT OSHA-CERTIFIED. For research/demo only.",
+    "status": "READY FOR CASE STUDIES",
+    "case_studies": [
+      {
+        "scenario_name": "EXAMPLE: Worker without helmet, no vest, standing > 30 sec",
+        "expected_risk_level": "HIGH",
+        "actual_risk_level": "NOT YET EVALUATED",
+        "actual_risk_score": null,
+        "verdict": "NOT YET EVALUATED"
+      }
+    ]
+  },
+
+  "ablation_study": {
+    "note": "Fill after running evaluation/run_ablation.py",
+    "status": "NOT YET EXECUTED",
+    "experiments": {
+      "detector_only": {
+        "status": "NOT YET MEASURED",
+        "output_dir": "results/ablation/detector_only/",
+        "modules_enabled": {
+          "wpam": false,
+          "tracking": false,
+          "tsmm": false,
+          "scrm": false,
+          "cram": false
+        },
+        "metrics": {
+          "note": "Requires ground truth to compute"
+        }
+      },
+      "wpam": {
+        "status": "NOT YET MEASURED",
+        "output_dir": "results/ablation/wpam/",
+        "modules_enabled": {
+          "wpam": true,
+          "tracking": false,
+          "tsmm": false,
+          "scrm": false,
+          "cram": false
+        }
+      },
+      "tracking": {
+        "status": "NOT YET MEASURED",
+        "output_dir": "results/ablation/tracking/",
+        "modules_enabled": {
+          "wpam": true,
+          "tracking": true,
+          "tsmm": false,
+          "scrm": false,
+          "cram": false
+        }
+      },
+      "tsmm": {
+        "status": "NOT YET MEASURED",
+        "output_dir": "results/ablation/tsmm/",
+        "modules_enabled": {
+          "wpam": true,
+          "tracking": true,
+          "tsmm": true,
+          "scrm": false,
+          "cram": false
+        }
+      },
+      "scrm": {
+        "status": "NOT YET MEASURED",
+        "output_dir": "results/ablation/scrm/",
+        "modules_enabled": {
+          "wpam": true,
+          "tracking": true,
+          "tsmm": true,
+          "scrm": true,
+          "cram": false
+        }
+      },
+      "full_csa_yolo": {
+        "status": "NOT YET MEASURED",
+        "output_dir": "results/ablation/full_csa_yolo/",
+        "modules_enabled": {
+          "wpam": true,
+          "tracking": true,
+          "tsmm": true,
+          "scrm": true,
+          "cram": true
+        }
+      }
+    }
+  },
+
+  "summary": {
+    "note": "Overall research status",
+    "phase": 5,
+    "phase_status": "INFRASTRUCTURE READY; AWAITING DETECTOR TRAINING ON COLAB",
+    "completed": [
+      "Phase 4: Complete pipeline implementation",
+      "Phase 5A: Training infrastructure prepared",
+      "Phase 5B: Ablation framework prepared",
+      "Phase 5C: Metrics templates created"
+    ],
+    "pending": [
+      "Detector training on Colab (1 week)",
+      "Local ablation experiments (2–3 days)",
+      "Ground truth annotation for WPAM/SCRM/TSMM (2–3 weeks)",
+      "CSA-Vid video collection & annotation (ongoing)",
+      "CRAM case study evaluation (1 week after SCRM GT)"
+    ],
+    "blockers": []
+  }
+}
