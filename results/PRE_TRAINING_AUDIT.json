@@ -1,0 +1,159 @@
+{
+  "audit_date": "2026-10-23",
+  "scope": "Pre-training research-integrity phase (no detector training performed)",
+  "experimentally_validated": false,
+  "experimental_validation_statement": "CSA-YOLO is NOT experimentally validated. Modules are implemented and unit tested. No detector has been trained and no research metric has been measured.",
+
+  "test_status": {
+    "command": "pytest tests/ -q",
+    "passed": 205,
+    "failed": 0,
+    "skipped": 0,
+    "xfailed": 0,
+    "previous_audit": {"passed": 117, "xfailed": 6},
+    "real_dataset_test_executed": "tests/test_clean_dataset.py::test_real_clean_dataset_has_zero_exact_overlap (not skipped)",
+    "note": "No xfail remains. Every defect that had an xfail now has a passing regression test."
+  },
+
+  "dataset_leakage_status": {
+    "status": "EXACT-IMAGE LEAKAGE RESOLVED; near-duplicates NOT YET MEASURED",
+    "original_dataset": "datasets/csa_ppe_v1 (audit reference, unmodified)",
+    "original_images": {"train": 1516, "valid": 213, "test": 195, "total": 1924},
+    "research_dataset": "datasets/csa_ppe_v1_clean (authoritative)",
+    "clean_images": {"train": 1481, "valid": 210, "test": 195, "total": 1886},
+    "duplicate_groups_found": 38,
+    "duplicate_images_removed": 38,
+    "removed_by_split": {"train": 35, "valid": 3, "test": 0},
+    "exact_image_leakage_after_cleanup": 0,
+    "within_split_duplicates_after_cleanup": 0,
+    "image_label_pairing": "verified: 0 images without labels, 0 labels without images",
+    "hash_algorithm": "SHA-256 (the earlier audit used MD5; SHA-256 is used for this check)",
+    "builder": "scripts/build_clean_dataset.py (deterministic)",
+    "removal_record": "datasets/splits/csa_ppe_v1_clean_removed.csv",
+    "audit_record": "results/dataset_audit_clean.json"
+  },
+
+  "code_defect_status": {
+    "defects_from_audit": [
+      {
+        "id": 1,
+        "issue": "WPAM had no spatial/distance gate",
+        "status": "FIXED",
+        "fix": "Spatial gate around body regions; margin in configs/default.yaml (association.gate_margin_ratio, PROVISIONAL)",
+        "regression_tests": ["test_far_away_helmet_is_rejected", "test_helmet_of_distant_worker_is_rejected", "test_gate_margin_is_configurable"]
+      },
+      {
+        "id": 2,
+        "issue": "One PPE item could belong to multiple workers",
+        "status": "FIXED",
+        "fix": "One-to-one assignment per class with the Hungarian algorithm",
+        "regression_tests": ["test_single_helmet_cannot_belong_to_two_overlapping_workers", "test_each_worker_gets_its_own_helmet", "test_matching_is_one_to_one"]
+      },
+      {
+        "id": 3,
+        "issue": "Hungarian algorithm imported but not executed",
+        "status": "FIXED",
+        "fix": "Executed in match_one_to_one; verified against exhaustive search on 20 seeded cases",
+        "regression_tests": ["test_hungarian_matching_is_optimal_against_brute_force"]
+      },
+      {
+        "id": 4,
+        "issue": "Helmet never detected was treated as UNKNOWN rather than as evidence; single-frame decisions were possible",
+        "status": "FIXED",
+        "fix": "Three-state rule: a class is ABSENT or PRESENT only with min_evidence_frames observations and threshold ratios; TSMM records absence for each required class each frame",
+        "regression_tests": ["test_worker_never_wearing_helmet_is_non_compliant", "test_single_frame_is_unknown_not_decided", "test_absence_from_too_few_frames_is_not_a_violation", "test_never_observed_class_is_unknown_not_absent", "test_conflicting_evidence_is_unknown"]
+      },
+      {
+        "id": 5,
+        "issue": "remove_old_tracks compared global frame index with per-worker active count; never called",
+        "status": "FIXED",
+        "fix": "States record last_seen_frame; cleanup runs every frame with max_age from configuration",
+        "regression_tests": ["test_remove_old_tracks_keeps_recently_seen_worker", "test_long_run_cleanup_keeps_active_and_drops_departed_workers", "test_memory_size_is_bounded_under_churn", "test_departed_worker_temporal_state_is_removed"]
+      },
+      {
+        "id": 6,
+        "issue": "Site summary counted every scored worker as non-compliant",
+        "status": "FIXED",
+        "fix": "Counts come from compliance results; compliant + non_compliant + unknown == total_workers; zero-worker case defined",
+        "regression_tests": ["test_compliance_categories_sum_to_total_workers", "test_compliant_workers_do_not_count_as_non_compliant", "test_site_with_zero_workers_is_unknown_with_zero_counts"]
+      }
+    ],
+    "additional_defects_found_and_fixed": [
+      {
+        "id": "A1",
+        "issue": "CRAM double-counted a missing PPE item: its 0.0 confidence also triggered the low-confidence penalty",
+        "status": "FIXED",
+        "regression_tests": ["test_missing_ppe_is_not_double_counted_as_low_confidence"]
+      },
+      {
+        "id": "A2",
+        "issue": "Tracker was not updated on frames with no workers, so stale tracks could be re-matched after long gaps",
+        "status": "FIXED",
+        "regression_tests": ["test_empty_frames_age_out_tracks", "test_reappearing_worker_after_long_gap_gets_new_track_id"]
+      },
+      {
+        "id": "A3",
+        "issue": "Documentation claimed WPAM used IoU and exclusive assignment and that the README claimed unimplemented features; several results were presented as facts",
+        "status": "FIXED in documentation",
+        "regression_tests": []
+      }
+    ],
+    "remaining_known_defects": [],
+    "remaining_known_limitations": [
+      "WPAM gate margin (0.10) is PROVISIONAL and not tuned",
+      "Occlusion of PPE is indistinguishable from absence",
+      "IoU tracker identity breaks under fast motion or occlusion longer than max_age",
+      "CRAM weights are hand-set and not validated",
+      "Near-duplicate images are not detected by exact hashing (NOT YET MEASURED)",
+      "Label agreement between dropped duplicate copies was not checked"
+    ]
+  },
+
+  "license_status": {
+    "project_license": "REQUIRES_USER_DECISION",
+    "license_file_present": false,
+    "third_party": {
+      "icsd_yolo": {
+        "location": "external/icsd_yolo (PrintSC/code, pinned 47018ed)",
+        "license_file": "absent in the submodule",
+        "indicated_license": "models/cfg/default.yaml header: 'Ultralytics AGPL-3.0 License'",
+        "status": "UNRESOLVED"
+      },
+      "ultralytics": {
+        "location": "requirements.txt (ultralytics==8.4.108)",
+        "license": "AGPL-3.0 (as indicated by the upstream project; verify before redistribution)",
+        "status": "dependency; obligations depend on how the software is distributed"
+      },
+      "pretrained_weights": {"location": "weights/yolo11n.pt", "status": "Ultralytics COCO-pretrained; governed by upstream terms"},
+      "datasets": {"location": "datasets/LICENSES.md", "status": "CHV and SHWD terms recorded; images not redistributed"}
+    },
+    "decision_required": "Choice of CSA-YOLO's own license, considering the AGPL-3.0 dependency and the unresolved ICSD-YOLO licence. No MIT license was added because compatibility is not established."
+  },
+
+  "training_status": {
+    "detector_trained": false,
+    "started_by_this_audit": false,
+    "baseline_yolo11n": "NOT STARTED (requires GPU)",
+    "yolo11n_scratch": "NOT STARTED (requires GPU)",
+    "icsd_restored_scratch": "NOT STARTED (requires GPU)",
+    "csa_ppe_v1_noshwd": "NOT STARTED (optional, requires GPU)",
+    "ablation_on_trained_detector": "NOT RUN (framework tested with COCO weights on 5 images; not a result)"
+  },
+
+  "annotation_status": {
+    "wpam_ground_truth": "NOT YET COMPLETED (50-100 test images; schema not yet written)",
+    "scrm_ground_truth": "NOT YET COMPLETED (50-100 test images; target count to be confirmed)",
+    "tracking_ground_truth": "NOT YET COMPLETED (annotated video required)",
+    "tsmm_ground_truth": "NOT YET COMPLETED (violation and occlusion intervals required)",
+    "csa_vid_clips_accepted": 1,
+    "csa_vid_target": "10-20 clips (docs/csa_vid_protocol.md)",
+    "annotator": "NOT ASSIGNED"
+  },
+
+  "metrics": "NOT YET MEASURED for every quantitative result (detection, WPAM, tracking, TSMM, SCRM, ablation)",
+  "publication": {
+    "paper_manuscript": "paper/ is empty",
+    "presentation": "ppt/ is empty",
+    "conference_submission": "NOT SUBMITTED; no acceptance exists"
+  }
+}

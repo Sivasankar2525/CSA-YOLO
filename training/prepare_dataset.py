@@ -1,5 +1,9 @@
 """Build the unified CSA-PPE dataset from raw sources per configs/merge.yaml.
 
+NOTE: this produces the ORIGINAL reference copy (datasets/csa_ppe_v1, 1924 images, which
+contains exact duplicate images). The leakage-free research dataset used for all training
+and evaluation is produced from it by scripts/build_clean_dataset.py -> datasets/csa_ppe_v1_clean.
+
 Fully deterministic: same config + seed produces identical splits. Outputs:
     datasets/csa_ppe_v1/{images,labels}/{train,valid,test}/
     datasets/csa_ppe_v1/data.yaml          (Ultralytics training config)

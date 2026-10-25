@@ -1,0 +1,85 @@
+{
+  "_note": "Single source of truth. Each value is copied from an artifact on disk; missing artifacts are NOT MEASURED. Validation status: NOT EXPERIMENTALLY VALIDATED.",
+  "generated_utc": "2026-10-25T20:08:53+00:00",
+  "detector": {
+    "baseline_yolo11n": {
+      "status": "NOT MEASURED",
+      "reason": "no completed training run summary found",
+      "metrics": {
+        "precision": "NOT MEASURED",
+        "recall": "NOT MEASURED",
+        "mAP@0.5": "NOT MEASURED",
+        "mAP@0.5:0.95": "NOT MEASURED"
+      },
+      "per_class_mAP50_95": "NOT MEASURED",
+      "artifacts": {
+        "experiment_summary": "NOT MEASURED",
+        "training_curves": "NOT MEASURED",
+        "confusion_matrix": "NOT MEASURED"
+      }
+    },
+    "yolo11n_scratch": {
+      "status": "NOT MEASURED",
+      "reason": "no completed training run summary found",
+      "metrics": {
+        "precision": "NOT MEASURED",
+        "recall": "NOT MEASURED",
+        "mAP@0.5": "NOT MEASURED",
+        "mAP@0.5:0.95": "NOT MEASURED"
+      },
+      "per_class_mAP50_95": "NOT MEASURED",
+      "artifacts": {
+        "experiment_summary": "NOT MEASURED",
+        "training_curves": "NOT MEASURED",
+        "confusion_matrix": "NOT MEASURED"
+      }
+    },
+    "icsd_restored_scratch": {
+      "status": "NOT MEASURED",
+      "reason": "no completed training run summary found",
+      "metrics": {
+        "precision": "NOT MEASURED",
+        "recall": "NOT MEASURED",
+        "mAP@0.5": "NOT MEASURED",
+        "mAP@0.5:0.95": "NOT MEASURED"
+      },
+      "per_class_mAP50_95": "NOT MEASURED",
+      "artifacts": {
+        "experiment_summary": "NOT MEASURED",
+        "training_curves": "NOT MEASURED",
+        "confusion_matrix": "NOT MEASURED"
+      }
+    }
+  },
+  "ablation": {
+    "status": "NOT MEASURED",
+    "reason": "no ablation run found; execute evaluation/run_ablation.py with a trained detector",
+    "source": "results/ablation/summary.json",
+    "configurations": "NOT MEASURED"
+  },
+  "wpam": {
+    "status": "NOT MEASURED",
+    "reason": "human ground truth not found at annotations/wpam.json",
+    "metrics": "NOT MEASURED"
+  },
+  "tracking": {
+    "status": "NOT MEASURED",
+    "reason": "human ground truth not found at annotations/tracking.json",
+    "metrics": "NOT MEASURED"
+  },
+  "tsmm": {
+    "status": "NOT MEASURED",
+    "reason": "human ground truth not found at annotations/tsmm.json",
+    "metrics": "NOT MEASURED"
+  },
+  "scrm": {
+    "status": "NOT MEASURED",
+    "reason": "human ground truth not found at annotations/scrm.json",
+    "metrics": "NOT MEASURED"
+  },
+  "cram": {
+    "status": "QUALITATIVE CASE STUDIES ONLY",
+    "reason": "rule-based prototype; no ground-truth risk labels exist",
+    "metrics": "NOT MEASURED"
+  }
+}

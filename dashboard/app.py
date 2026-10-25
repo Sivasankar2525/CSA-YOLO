@@ -18,8 +18,8 @@ st.title("🏗️ CSA-YOLO Construction Safety Dashboard")
 st.markdown(
     """
 This is a prototype demonstration of the **Construction Safety-Aware YOLO** pipeline.
-It performs real-time safety analysis including worker detection, PPE verification,
-temporal memory, compliance checking, and risk assessment.
+It performs safety analysis including worker detection, PPE verification,
+temporal memory, compliance checking, and risk assessment. Real-time performance has not been measured.
 
 **DISCLAIMER:** This is a research prototype for educational purposes only.
 It should NOT be used for real safety-critical decisions without proper validation.
@@ -238,7 +238,7 @@ with tab3:
     1. **Detection:** YOLO-based worker and PPE detection
     2. **WPAM:** Worker–PPE Association Module (assigns PPE to workers)
     3. **Tracking:** Maintains persistent worker IDs across frames
-    4. **TSMM:** Temporal Safety Memory (reduces false alarms)
+    4. **TSMM:** Temporal Safety Memory (smooths per-frame PPE evidence; effect on false alarms not yet measured)
     5. **SCRM:** Safety Compliance Reasoning (checks required PPE)
     6. **CRAM:** Construction Risk Assessment (rule-based risk scoring)
     """
@@ -250,7 +250,7 @@ with tab3:
 
     with col1:
         st.write("**WPAM**")
-        st.write("Associates detected PPE items with individual workers using geometric proximity and IoU matching.")
+        st.write("Associates detected PPE items with individual workers using a spatial gate and one-to-one Hungarian matching.")
 
     with col2:
         st.write("**TSMM**")
@@ -281,9 +281,8 @@ with tab3:
     st.code(
         """
 @article{csa-yolo-2026,
-  title={CSA-YOLO: Construction Safety-Aware Detector with
-         Worker-PPE Association, Temporal Memory, and Risk Assessment},
-  author={Your Name},
+  title={CSA-YOLO: Construction Safety-Aware Lightweight Object Detection Framework with Worker-PPE Association and Temporal Safety Reasoning},
+  author={Siva Sankar B},
   year={2026}
 }
         """,

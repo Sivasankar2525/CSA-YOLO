@@ -17,7 +17,7 @@
         "config": "configs/experiments/baseline_yolo11n.yaml",
         "model_family": "ultralytics",
         "model_weights": "yolo11n.pt (COCO-pretrained)",
-        "dataset": "csa_ppe_v1",
+        "dataset": "csa_ppe_v1_clean",
         "training_time_hours": null,
         "best_epoch": null,
         "metrics": {
@@ -40,7 +40,7 @@
         "config": "configs/experiments/yolo11n_scratch.yaml",
         "model_family": "ultralytics",
         "model_weights": "yolo11n.yaml (random init)",
-        "dataset": "csa_ppe_v1",
+        "dataset": "csa_ppe_v1_clean",
         "training_time_hours": null,
         "best_epoch": null,
         "metrics": {
@@ -57,7 +57,7 @@
         "model_family": "icsd",
         "model_arch": "x",
         "model_scale": "n",
-        "dataset": "csa_ppe_v1",
+        "dataset": "csa_ppe_v1_clean",
         "training_time_hours": null,
         "best_epoch": null,
         "metrics": {

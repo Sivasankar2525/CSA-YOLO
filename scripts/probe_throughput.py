@@ -35,7 +35,7 @@ logger = logging.getLogger("probe_throughput")
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", choices=["yolo11n", "icsd"], required=True)
-    parser.add_argument("--data", type=Path, default=PROJECT_ROOT / "datasets/csa_ppe_v1/data.yaml")
+    parser.add_argument("--data", type=Path, default=PROJECT_ROOT / "datasets/csa_ppe_v1_clean/data.yaml")
     parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--batch", type=int, default=16)

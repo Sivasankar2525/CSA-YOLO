@@ -1,9 +1,9 @@
 # CSA-Vid: temporal PPE compliance benchmark — collection & annotation protocol
 
-Purpose: the evaluation substrate for TSMM's headline claim (false-alarm reduction
-under occlusion) and for CRAM case studies. No public video benchmark for per-worker
-temporal PPE compliance exists (Week 1–2 survey) — CSA-Vid is therefore a secondary
-contribution of the paper.
+Purpose: the evaluation substrate for TSMM's hypothesis (false-alarm reduction
+under occlusion; NOT YET MEASURED) and for CRAM case studies. No public video benchmark for per-worker
+temporal PPE compliance exists (Week 1–2 survey) — CSA-Vid would therefore be a
+secondary contribution of the paper, if the annotations are completed.
 
 ## Collection rules
 

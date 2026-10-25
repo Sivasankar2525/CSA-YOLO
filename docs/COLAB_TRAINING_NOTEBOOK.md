@@ -6,14 +6,20 @@ This document provides copy-paste Colab cells for training the detector.
 
 - Google account (free Colab access)
 - Colab notebook open (colab.research.google.com)
+- Runtime → Change runtime type → **T4 GPU** (or V100/A100 if available)
+- `csa_ppe_v1_clean/` uploaded to Google Drive (from your Mac; not on GitHub). See Cell 4.
+- Nothing is trained automatically: each training cell below is run by you.
 
 ## Setup Cells
 
 ### Cell 1: Clone Repository
 
 ```python
-!git clone https://github.com/YOUR_GITHUB_USERNAME/csa-yolo.git /content/csa-yolo
+!git clone --recursive https://github.com/Sivasankar2525/CSA-YOLO.git /content/csa-yolo
 %cd /content/csa-yolo
+# Make sure the ICSD-YOLO submodule is present (pinned at 47018ed)
+!git submodule update --init --recursive
+!git -C external/icsd_yolo rev-parse --short HEAD
 !pwd
 ```
 
@@ -47,55 +53,58 @@ Tesla V100-SXM2-16GB, 16GB, ~16GB
 Tesla T4, 16GB, ~16GB
 ```
 
-### Cell 4: Verify Dataset
+### Cell 4: Put the dataset on Colab (upload, then verify)
+
+`datasets/` is git-ignored, so a fresh clone has **no data**. Upload the dataset to Google
+Drive once (never to GitHub), then copy it into the clone:
+
+- Local file to upload: `csa_ppe_v1.zip` (original, 517 MiB, kept locally, never committed), **or**
+  the folder `datasets/csa_ppe_v1_clean/` (leakage-free, the research dataset).
+- Use `csa_ppe_v1_clean/` for every experiment. Do not train on the original folder.
 
 ```python
-import os
-import yaml
+from google.colab import drive
+drive.mount('/content/drive')
 
-# Check dataset exists
-dataset_path = '/content/csa-yolo/datasets/csa_ppe_v1'
-assert os.path.isdir(dataset_path), f"Dataset not found at {dataset_path}"
+import os, shutil
+src = '/content/drive/MyDrive/CSA-YOLO/datasets/csa_ppe_v1_clean'   # adjust to your Drive folder
+dst = '/content/csa-yolo/datasets/csa_ppe_v1_clean'
+assert os.path.isdir(src), f"Upload csa_ppe_v1_clean to Drive first: {src}"
+os.makedirs(os.path.dirname(dst), exist_ok=True)
+if not os.path.isdir(dst):
+    shutil.copytree(src, dst)
 
-# Count images
 for split in ['train', 'valid', 'test']:
-    count = len(os.listdir(f'{dataset_path}/images/{split}'))
-    print(f"{split:8} : {count:5} images")
-
-# Read data.yaml
-with open(f'{dataset_path}/data.yaml') as f:
-    cfg = yaml.safe_load(f)
-    print(f"\nClasses: {cfg['names']}")
+    n = len(os.listdir(f'{dst}/images/{split}'))
+    print(f"{split:8}: {n:5} images")
 ```
 
-**Expected output:**
+**Expected output (clean dataset):**
 ```
-train    :  1516 images
-valid    :   213 images
-test     :   195 images
-
-Classes: ['person', 'helmet', 'no_helmet', 'vest', 'no_vest']
+train   :  1481 images
+valid   :   210 images
+test    :   195 images
 ```
 
-### Cell 5: Fix Dataset Paths (If Needed)
+### Cell 5: Verify no exact-image leakage on the uploaded copy
 
 ```python
-# If dataset.yaml has absolute Mac paths, fix them
-import yaml
-
-data_yaml = '/content/csa-yolo/datasets/csa_ppe_v1/data.yaml'
-with open(data_yaml) as f:
-    cfg = yaml.safe_load(f)
-
-# Update paths
-cfg['path'] = '/content/csa-yolo/datasets/csa_ppe_v1'
-
-with open(data_yaml, 'w') as f:
-    yaml.dump(cfg, f)
-
-print("Updated data.yaml:")
-print(yaml.dump(cfg))
+import importlib.util, json
+spec = importlib.util.spec_from_file_location('bcd', '/content/csa-yolo/scripts/build_clean_dataset.py')
+bcd = importlib.util.module_from_spec(spec); spec.loader.exec_module(bcd)
+from pathlib import Path
+names = ['person', 'helmet', 'no_helmet', 'vest', 'no_vest']
+report = bcd.verify(Path('/content/csa-yolo/datasets/csa_ppe_v1_clean'), names)
+print(json.dumps(report, indent=2))
+assert report['exact_image_leakage'] == 0, 'leakage detected: do not train'
+print(f"EXACT IMAGE LEAKAGE: {report['exact_image_leakage']}")
 ```
+
+**Expected:** `EXACT IMAGE LEAKAGE: 0`. If not, stop and re-upload.
+
+**No path edits are needed.** The training launcher writes a resolved copy of the dataset YAML
+(`data_resolved.yaml`) whose `path` is the folder that actually holds the data, so the Mac path in
+the committed YAML is ignored on Colab.
 
 ---
 
@@ -154,7 +163,7 @@ model = YOLO('/content/csa-yolo/results/experiments/baseline_yolo11n/weights/bes
 
 # Validate on test set
 results = model.val(
-    data='/content/csa-yolo/datasets/csa_ppe_v1/data.yaml',
+    data='/content/csa-yolo/datasets/csa_ppe_v1_clean/data.yaml',
     device='cuda',
     verbose=True
 )
@@ -186,19 +195,31 @@ files.download('/content/csa-yolo/results/experiments/baseline_yolo11n/experimen
 print("\nFiles ready for download in Colab sidebar →")
 ```
 
-### Cell 9: Push to GitHub (Optional)
+```python
+# Record checksums for the downloaded weights (store them in docs/PROJECT_STATUS.md)
+!sha256sum /content/csa-yolo/results/experiments/baseline_yolo11n/weights/best.pt
+```
+
+### Cell 9: Versioning the weights (Optional)
+
+`weights/` and `results/` are git-ignored (see `.gitignore`), so `git add` does not
+commit trained weights. Keep weights outside git: download them (Cell 8), store them
+with their checksum, and record the location in `docs/PROJECT_STATUS.md`.
+
+To commit only the small artifacts (summaries, configs, logs), copy them out of the
+ignored folders first:
 
 ```python
+!git config --global user.name "Siva Sankar B"
 !git config --global user.email "YOUR_EMAIL@example.com"
-!git config --global user.name "Your Name"
-
-# Add trained weights
-!git add weights/ results/experiments/
-!git commit -m "feat: Add trained detector weights (baseline_yolo11n on Colab V100)"
+!mkdir -p /content/csa-yolo/docs/run_summaries/baseline_yolo11n
+!cp /content/csa-yolo/results/experiments/baseline_yolo11n/experiment_summary.json /content/csa-yolo/docs/run_summaries/baseline_yolo11n/
+!git add -f docs/run_summaries/baseline_yolo11n/experiment_summary.json
+!git commit -m "docs: Add baseline_yolo11n training summary (Colab GPU)"
 !git push
 ```
 
-**Note:** Requires GitHub credentials. Use personal access token if requested.
+**Note:** Requires GitHub credentials. Use a personal access token if requested.
 
 ---
 
@@ -243,7 +264,7 @@ torch.cuda.empty_cache()
 ### Issue: Dataset not found
 
 ```python
-!ls -la /content/csa-yolo/datasets/csa_ppe_v1/images/train | head -5
+!ls -la /content/csa-yolo/datasets/csa_ppe_v1_clean/images/train | head -5
 ```
 
 Should show ~1500 JPG files.

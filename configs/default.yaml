@@ -19,3 +19,27 @@ detector:
 
 logging:
   level: INFO
+
+# ---------------------------------------------------------------------------
+# Module parameters. These mirror csa_yolo/pipeline.py DEFAULT_SETTINGS; a test
+# checks that both stay equal. Values marked PROVISIONAL are engineering defaults,
+# NOT tuned or validated. Set them on a validation split before reporting results.
+# See docs/MODULES.md for the meaning of each parameter.
+# ---------------------------------------------------------------------------
+
+association:           # WPAM spatial gate + one-to-one assignment
+  gate_margin_ratio: 0.10   # PROVISIONAL: margin around body region, fraction of worker height
+
+tracking:              # IoU tracker lifecycle
+  iou_threshold: 0.3
+  max_age: 30          # frames without a match before a track is removed
+
+temporal:              # TSMM per-worker evidence window
+  window_size: 5
+  presence_confidence: 0.5   # PPE detection confidence counted as "present"
+
+compliance:            # SCRM decision rules
+  required_ppe: [helmet, vest]
+  present_threshold: 0.7     # present ratio for PRESENT (positive evidence)
+  absent_threshold: 0.3      # present ratio for ABSENT (evidence of absence)
+  min_evidence_frames: 5     # observations needed before a class is decided

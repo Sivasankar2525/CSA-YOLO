@@ -1,283 +1,218 @@
 #!/usr/bin/env python3
-"""Ablation study runner — evaluate pipeline with modules enabled/disabled.
+"""Ablation runner: runs the pipeline with cumulative module stacks.
+
+Every configuration in ``configs/ablation.yaml`` is executed for real: the
+pipeline is built with ``enabled_modules`` so disabled stages do not run.
+The detector is loaded once and shared.
+
+This script records OPERATIONAL outputs only (detection, association, track,
+compliance and risk counts). Accuracy-type metrics need human ground truth
+and are written as ``NOT YET MEASURED`` until that annotation exists.
 
 Usage:
     python evaluation/run_ablation.py \
       --detector weights/baseline_yolo11n_best.pt \
-      --images datasets/csa_ppe_v1/images/test \
-      --output results/ablation \
-      --experiments detector_only wpam tracking tsmm scrm full_csa_yolo
+      --images datasets/csa_ppe_v1_clean/images/test \
+      --dataset csa_ppe_v1_clean --split test \
+      --output results/ablation
 """
 
 import argparse
 import json
 import logging
+from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 import cv2
-import numpy as np
+import yaml
 
+from csa_yolo import __version__
 from csa_yolo.detection import Detector, resolve_device
-from csa_yolo.pipeline import SafetyPipeline
-from csa_yolo.utils.config import load_config
+from csa_yolo.pipeline import ALL_MODULES, SafetyPipeline, settings_from_config
+from csa_yolo.utils.reproducibility import set_seed
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ABLATION_CONFIG = PROJECT_ROOT / "configs" / "ablation.yaml"
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
+NOT_MEASURED = "NOT YET MEASURED"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class AblationPipeline:
-    """Pipeline wrapper that enables/disables modules for ablation studies."""
-
-    def __init__(self, detector: Detector):
-        self.detector = detector
-        self.pipeline = SafetyPipeline(detector)
-
-    def process_frame_ablated(
-        self,
-        frame: np.ndarray,
-        enable_wpam: bool = True,
-        enable_tracking: bool = True,
-        enable_tsmm: bool = True,
-        enable_scrm: bool = True,
-        enable_cram: bool = True,
-    ):
-        """Process frame with specified modules enabled/disabled.
-
-        For now, this is a placeholder — the actual ablation requires
-        refactoring the pipeline to allow module disabling.
-
-        Current workaround: instantiate a fresh pipeline for each ablation
-        and manually skip module outputs.
-        """
-        result = self.pipeline.process_frame(frame)
-
-        # Simulate module disabling by zeroing outputs
-        if not enable_wpam:
-            result.associations = []
-        if not enable_tracking:
-            result.tracked_workers = {}
-        if not enable_tsmm:
-            result.temporal_states = {}
-        if not enable_scrm:
-            result.compliance_results = {}
-        if not enable_cram:
-            result.worker_risks = {}
-
-        return result
+def load_ablation_configs(path: Path) -> dict[str, list[str]]:
+    """Return {experiment_name: [enabled module names]} from the YAML ladder."""
+    with open(path) as f:
+        raw = yaml.safe_load(f)["ablation"]
+    configs = {name: list(modules or []) for name, modules in raw.items()}
+    for name, modules in configs.items():
+        unknown = set(modules) - set(ALL_MODULES)
+        if unknown:
+            raise ValueError(f"{name}: unknown module(s) {sorted(unknown)}")
+    return configs
 
 
-def run_ablation_experiment(
-    detector_path: Path,
-    image_dir: Path,
-    output_dir: Path,
+def run_configuration(
+    detector: Detector,
     experiment_name: str,
-    ablation_config: dict,
-    max_images: Optional[int] = None,
+    enabled_modules: list[str],
+    image_paths: list[Path],
+    output_dir: Path,
+    run_metadata: dict,
+    settings_raw: dict,
 ) -> dict:
-    """Run a single ablation experiment.
+    """Run one ablation configuration over ``image_paths`` and save its outputs."""
+    logger.info("Starting %s (modules: %s)", experiment_name, enabled_modules or "none")
+    pipeline = SafetyPipeline.from_config(detector, settings_raw, enabled_modules=enabled_modules)
 
-    Args:
-        detector_path: Path to detector weights.
-        image_dir: Directory of test images.
-        output_dir: Directory to save results.
-        experiment_name: Name of experiment (e.g., "detector_only").
-        ablation_config: Dict of {module_name: enabled}.
-        max_images: Max images to process (for quick testing).
+    counts = Counter()
+    compliance_counts = Counter()
+    risk_counts = Counter()
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    Returns:
-        Dict of metrics (currently placeholder).
-    """
-    logger.info(f"Starting ablation experiment: {experiment_name}")
-    logger.info(f"  WPAM: {ablation_config['wpam']}")
-    logger.info(f"  Tracking: {ablation_config['tracking']}")
-    logger.info(f"  TSMM: {ablation_config['tsmm']}")
-    logger.info(f"  SCRM: {ablation_config['scrm']}")
-    logger.info(f"  CRAM: {ablation_config['cram']}")
+    with open(output_dir / "results.jsonl", "w") as results_file:
+        for path in image_paths:
+            frame = cv2.imread(str(path))
+            if frame is None:
+                counts["images_unreadable"] += 1
+                continue
 
-    # Initialize detector
-    device = resolve_device("auto")
-    logger.info(f"Using device: {device}")
+            result = pipeline.process_frame(frame)
+            counts["images_processed"] += 1
+            counts["detections"] += len(result.detections.detections)
 
-    detector = Detector(
-        model_path=str(detector_path),
-        device=device,
-    )
+            workers = result.detections.by_class(pipeline.worker_class_names)
+            counts["workers_detected"] += len(workers)
+            if workers:
+                counts["images_with_workers"] += 1
 
-    ablation = AblationPipeline(detector)
+            counts["associations"] += len(result.associations)
+            for assoc in result.associations:
+                counts["helmets_associated"] += len(assoc.associated_ppe.get("helmet", []))
+                counts["vests_associated"] += len(assoc.associated_ppe.get("vest", []))
 
-    # Process images
-    image_files = sorted(image_dir.glob("*.jpg")) + sorted(image_dir.glob("*.png"))
-    if max_images:
-        image_files = image_files[:max_images]
+            for compliance in result.compliance_results.values():
+                compliance_counts[compliance.status] += 1
+            for risk in result.worker_risks.values():
+                risk_counts[risk.worker_risk_level] += 1
 
-    logger.info(f"Processing {len(image_files)} images")
+            record = {"image": path.name, **result.to_dict()}
+            results_file.write(json.dumps(record) + "\n")
 
-    results = []
-    for idx, image_path in enumerate(image_files):
-        frame = cv2.imread(str(image_path))
-        if frame is None:
-            continue
-
-        result = ablation.process_frame_ablated(
-            frame,
-            enable_wpam=ablation_config["wpam"],
-            enable_tracking=ablation_config["tracking"],
-            enable_tsmm=ablation_config["tsmm"],
-            enable_scrm=ablation_config["scrm"],
-            enable_cram=ablation_config["cram"],
-        )
-        results.append(result.to_dict())
-
-        if (idx + 1) % 50 == 0:
-            logger.info(f"  Processed {idx + 1} / {len(image_files)}")
-
-    # Aggregate metrics (placeholder)
+    distinct_tracks = pipeline.tracker.next_track_id if "tracking" in enabled_modules else None
     metrics = {
         "experiment": experiment_name,
-        "images_processed": len(results),
-        "modules_enabled": ablation_config,
-        "placeholder_metrics": {
-            "note": "Actual metrics require ground truth annotations",
-            "wpam_accuracy": "NOT YET MEASURED",
-            "compliance_accuracy": "NOT YET MEASURED",
-            "risk_correlation": "NOT YET MEASURED",
+        "enabled_modules": enabled_modules,
+        "images_processed": counts["images_processed"],
+        "images_unreadable": counts["images_unreadable"],
+        "images_with_workers": counts["images_with_workers"],
+        "detections_total": counts["detections"],
+        "workers_detected_total": counts["workers_detected"],
+        "associations_total": counts["associations"],
+        "helmets_associated_total": counts["helmets_associated"],
+        "vests_associated_total": counts["vests_associated"],
+        "distinct_track_ids": distinct_tracks,
+        "compliance_status_counts": dict(compliance_counts),
+        "risk_level_counts": dict(risk_counts),
+        "ground_truth_metrics": {
+            "wpam_precision": NOT_MEASURED,
+            "wpam_recall": NOT_MEASURED,
+            "wpam_f1": NOT_MEASURED,
+            "tracking_idf1": NOT_MEASURED,
+            "tracking_id_switches": NOT_MEASURED,
+            "tsmm_false_alarm_reduction": NOT_MEASURED,
+            "scrm_accuracy": NOT_MEASURED,
+            "scrm_precision": NOT_MEASURED,
+            "scrm_recall": NOT_MEASURED,
+            "cram": "qualitative case studies only (rule-based prototype)",
         },
     }
 
-    # Save results
-    output_dir = Path(output_dir) / experiment_name
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    results_file = output_dir / "results.json"
-    with open(results_file, "w") as f:
-        json.dump(results, f, indent=2)
-    logger.info(f"Saved results to {results_file}")
-
-    metrics_file = output_dir / "metrics.json"
-    with open(metrics_file, "w") as f:
-        json.dump(metrics, f, indent=2)
-    logger.info(f"Saved metrics to {metrics_file}")
-
-    # Save config
-    config_file = output_dir / "config.json"
-    with open(config_file, "w") as f:
-        json.dump(ablation_config, f, indent=2)
-
+    config = {**run_metadata, "experiment_name": experiment_name, "enabled_modules": enabled_modules}
+    (output_dir / "config.json").write_text(json.dumps(config, indent=2) + "\n")
+    (output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n")
+    logger.info("Saved %s to %s", experiment_name, output_dir)
     return metrics
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--detector",
-        type=Path,
-        required=True,
-        help="Path to detector weights",
-    )
-    parser.add_argument(
-        "--images",
-        type=Path,
-        required=True,
-        help="Directory of test images",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default="results/ablation",
-        help="Output directory for ablation results",
-    )
-    parser.add_argument(
-        "--max-images",
-        type=int,
-        default=None,
-        help="Max images to process (for quick testing)",
-    )
-    parser.add_argument(
-        "--experiments",
-        nargs="+",
-        default=[
-            "detector_only",
-            "wpam",
-            "tracking",
-            "tsmm",
-            "scrm",
-            "full_csa_yolo",
-        ],
-        help="Ablation experiments to run",
-    )
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--detector", type=Path, required=True, help="Path to detector weights")
+    parser.add_argument("--images", type=Path, required=True, help="Directory of evaluation images")
+    parser.add_argument("--dataset", default="csa_ppe_v1_clean", help="Dataset name (recorded in config.json)")
+    parser.add_argument("--split", default="test", help="Dataset split name (recorded in config.json)")
+    parser.add_argument("--output", type=Path, default=Path("results/ablation"))
+    parser.add_argument("--ablation-config", type=Path, default=DEFAULT_ABLATION_CONFIG)
+    parser.add_argument("--experiments", nargs="+", default=None, help="Subset of configuration names")
+    parser.add_argument("--max-images", type=int, default=None, help="Limit images (quick checks)")
+    parser.add_argument("--device", default="auto")
+    parser.add_argument("--imgsz", type=int, default=640)
+    parser.add_argument("--conf", type=float, default=0.25)
+    parser.add_argument("--iou", type=float, default=0.45)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--settings", type=Path, default=PROJECT_ROOT / "configs" / "default.yaml",
+                        help="YAML with module parameters (association, tracking, temporal, compliance)")
     args = parser.parse_args()
 
-    # Define ablation configurations
-    ablation_configs = {
-        "detector_only": {
-            "wpam": False,
-            "tracking": False,
-            "tsmm": False,
-            "scrm": False,
-            "cram": False,
-        },
-        "wpam": {
-            "wpam": True,
-            "tracking": False,
-            "tsmm": False,
-            "scrm": False,
-            "cram": False,
-        },
-        "tracking": {
-            "wpam": True,
-            "tracking": True,
-            "tsmm": False,
-            "scrm": False,
-            "cram": False,
-        },
-        "tsmm": {
-            "wpam": True,
-            "tracking": True,
-            "tsmm": True,
-            "scrm": False,
-            "cram": False,
-        },
-        "scrm": {
-            "wpam": True,
-            "tracking": True,
-            "tsmm": True,
-            "scrm": True,
-            "cram": False,
-        },
-        "full_csa_yolo": {
-            "wpam": True,
-            "tracking": True,
-            "tsmm": True,
-            "scrm": True,
-            "cram": True,
-        },
+    set_seed(args.seed)
+    with open(args.settings) as f:
+        settings_raw = yaml.safe_load(f) or {}
+    configs = load_ablation_configs(args.ablation_config)
+    if args.experiments:
+        unknown = set(args.experiments) - set(configs)
+        if unknown:
+            parser.error(f"unknown experiment(s): {sorted(unknown)}")
+        configs = {name: configs[name] for name in args.experiments}
+
+    image_paths = sorted(p for p in args.images.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES)
+    if args.max_images:
+        image_paths = image_paths[: args.max_images]
+    if not image_paths:
+        parser.error(f"no images found in {args.images}")
+
+    device = resolve_device(args.device)
+    detector = Detector(
+        model_path=args.detector,
+        confidence_threshold=args.conf,
+        iou_threshold=args.iou,
+        device=device,
+        image_size=args.imgsz,
+    )
+
+    run_metadata = {
+        "detector": str(args.detector),
+        "dataset": args.dataset,
+        "split": args.split,
+        "images_dir": str(args.images),
+        "num_images_requested": len(image_paths),
+        "image_size": args.imgsz,
+        "confidence_threshold": args.conf,
+        "iou_threshold": args.iou,
+        "device": device,
+        "seed": args.seed,
+        "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "software_version": __version__,
+        "settings_file": str(args.settings),
+        "module_settings": settings_from_config(settings_raw),
     }
 
-    # Run requested experiments
-    all_metrics = {}
-    for experiment_name in args.experiments:
-        if experiment_name not in ablation_configs:
-            logger.warning(f"Unknown experiment: {experiment_name}")
-            continue
-
-        config = ablation_configs[experiment_name]
-        metrics = run_ablation_experiment(
-            args.detector,
-            args.images,
-            args.output,
-            experiment_name,
-            config,
-            max_images=args.max_images,
+    summary = {}
+    for name, modules in configs.items():
+        metrics = run_configuration(
+            detector, name, modules, image_paths, args.output / name, run_metadata, settings_raw
         )
-        all_metrics[experiment_name] = metrics
+        summary[name] = {k: metrics[k] for k in (
+            "enabled_modules", "images_processed", "detections_total",
+            "associations_total", "distinct_track_ids",
+            "compliance_status_counts", "risk_level_counts",
+        )}
 
-    # Save aggregate metrics
-    summary_file = args.output / "ablation_summary.json"
-    summary_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(summary_file, "w") as f:
-        json.dump(all_metrics, f, indent=2)
-    logger.info(f"Saved ablation summary to {summary_file}")
+    args.output.mkdir(parents=True, exist_ok=True)
+    (args.output / "summary.json").write_text(
+        json.dumps({"run": run_metadata, "configurations": summary}, indent=2) + "\n"
+    )
+    logger.info("Ablation finished: %d configurations", len(summary))
 
 
 if __name__ == "__main__":

@@ -53,6 +53,35 @@ def load_experiment(path: Path) -> dict[str, Any]:
     return cfg
 
 
+def apply_overrides(train_cfg: dict[str, Any], device: str | None, epochs: int | None) -> dict[str, Any]:
+    """Return a copy of ``train_cfg`` with command-line overrides applied (None = keep YAML)."""
+    effective = dict(train_cfg)
+    if device is not None:
+        effective["device"] = device
+    if epochs is not None:
+        if epochs < 1:
+            raise ValueError(f"--epochs must be >= 1, got {epochs}")
+        effective["epochs"] = epochs
+    return effective
+
+
+def resolve_data_yaml(data_yaml: Path, out_dir: Path) -> Path:
+    """Write a copy of the dataset YAML whose ``path`` is this machine's dataset folder.
+
+    The committed/derived data.yaml may hold an absolute path from another machine
+    (e.g. the development Mac). The dataset folder that contains the YAML is the
+    authoritative root, so the launcher writes ``out_dir/data_resolved.yaml`` with
+    ``path`` set to that folder. No manual ``sed`` step is needed on Colab.
+    """
+    with data_yaml.open("r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    data["path"] = str(data_yaml.resolve().parent)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    resolved = out_dir / "data_resolved.yaml"
+    resolved.write_text(yaml.safe_dump(data, sort_keys=False))
+    return resolved
+
+
 def build_model(model_cfg: dict[str, Any]):
     """Instantiate the detector named by the experiment's ``model`` section."""
     family = model_cfg["family"]
@@ -72,7 +101,7 @@ def build_model(model_cfg: dict[str, Any]):
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--experiment", type=Path, required=True)
-    parser.add_argument("--device", default=None, help="override train.device (smoke tests)")
+    parser.add_argument("--device", default=None, help="override train.device, e.g. cuda on Colab")
     parser.add_argument("--epochs", type=int, default=None, help="override train.epochs (smoke tests)")
     args = parser.parse_args()
 
@@ -81,11 +110,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO)
     set_seed(int(cfg["seed"]))
 
-    train_cfg = dict(cfg["train"])
-    if args.device is not None:
-        train_cfg["device"] = args.device
-    if args.epochs is not None:
-        train_cfg["epochs"] = args.epochs
+    train_cfg = apply_overrides(cfg["train"], args.device, args.epochs)
 
     data_yaml = PROJECT_ROOT / cfg["data"]
     if not data_yaml.is_file():
@@ -93,13 +118,14 @@ def main() -> None:
 
     out_project = PROJECT_ROOT / cfg.get("output", {}).get("project", "results/experiments")
     run_name = cfg["name"]
+    resolved_data = resolve_data_yaml(data_yaml, out_project / run_name)
 
     model = build_model(cfg["model"])
 
     logger.info("Starting experiment '%s' (%s)", run_name, args.experiment)
     start = time.perf_counter()
     results = model.train(
-        data=str(data_yaml),
+        data=str(resolved_data),
         project=str(out_project),
         name=run_name,
         exist_ok=True,
@@ -116,6 +142,9 @@ def main() -> None:
         "config_file": str(args.experiment),
         "config": cfg,
         "overrides": {"device": args.device, "epochs": args.epochs},
+        "effective_train": train_cfg,
+        "dataset_yaml": str(data_yaml),
+        "resolved_dataset_yaml": str(resolved_data),
         "wall_seconds": round(wall, 1),
     }
     metrics = getattr(results, "results_dict", None)

@@ -21,12 +21,12 @@ Video → Frame Extraction → ICSD-YOLO (worker + PPE detection)
 
 ## Research contributions
 
-| Module | Purpose | Key claim |
+| Module | Purpose | Hypothesis to test (NOT YET MEASURED) |
 |---|---|---|
-| **WPAM** | Assign every PPE detection to exactly one worker | Association accuracy vs. greedy/IoU baselines |
-| **TSMM** | Per-worker temporal memory over tracked identities | False-alarm reduction under occlusion |
-| **SCRM** | Zone-aware, configurable worker-level compliance reasoning | Compliance decision accuracy |
-| **CRAM** | Explainable risk scoring grounded in OSHA severity guidance | Risk-ranking correctness + human-readable rationale |
+| **WPAM** | Spatially gated, one-to-one assignment of PPE items to workers | Association precision/recall vs. a greedy or IoU baseline |
+| **TSMM** | Per-worker temporal evidence window over tracked identities | Fewer false violations than per-frame decisions |
+| **SCRM** | Evidence-based `COMPLIANT` / `NON_COMPLIANT` / `UNKNOWN` decisions | Compliance accuracy against human labels |
+| **CRAM** | Rule-based risk prototype with transparent factors | Qualitative case studies only; **not a validated risk model** |
 
 ## Repository layout
 
@@ -75,7 +75,7 @@ python scripts/demo.py <image_path> [--output <output_path>] [--json-output <jso
 
 Example:
 ```bash
-python scripts/demo.py datasets/raw/CSS/valid/example.jpg --output output.jpg
+python scripts/demo.py datasets/csa_ppe_v1_clean/images/test/CHV_ppe_0003.jpg --output output.jpg
 ```
 
 ### Dashboard: Interactive Web UI
@@ -94,68 +94,36 @@ python scripts/verify_detection.py --config configs/default.yaml
 
 ## Module Documentation
 
-### WPAM — Worker–PPE Association Module
+Full specifications, decision rules and parameters: **[docs/MODULES.md](docs/MODULES.md)**.
 
-Associates detected PPE items with individual workers using geometric proximity.
+All four research modules are **implemented and unit tested. None is experimentally evaluated yet.**
 
-**Algorithm:**
-- Defines worker head region (top 20% of bounding box)
-- Defines worker torso region (middle 60% of box)
-- Matches helmets to head region and vests to torso using IoU + center distance
-- Produces: `{worker_id: {helmet: [detections], vest: [detections]}}`
+- **WPAM** — spatial gate around the head and torso regions, then one-to-one Hungarian assignment. `csa_yolo/wpam/associate.py`
+- **Tracking** — IoU matching with removal of tracks unmatched for `max_age` frames. `csa_yolo/tracking/tracker.py`
+- **TSMM** — per-worker sliding window of PPE observations, with stale-state cleanup. `csa_yolo/tsmm/memory.py`
+- **SCRM** — `COMPLIANT` / `NON_COMPLIANT` / `UNKNOWN` from evidence counts and thresholds. `csa_yolo/scrm/compliance.py`
+- **CRAM** — a rule-based **prototype** risk layer. It is **not a validated predictive model** and is not OSHA-certified. `csa_yolo/cram/risk_assessment.py`
 
-**Code:** `csa_yolo/wpam/associate.py`
+All parameters are in `configs/default.yaml`. The WPAM gate margin is marked PROVISIONAL and has not been tuned.
 
-### Tracking — IoU-Based Worker Tracking
+## Datasets, Training and Evaluation
 
-Maintains persistent worker IDs across frames.
+- **Research dataset:** `datasets/csa_ppe_v1_clean/` (1481 / 210 / 195 images; 0 exact-image leakage).
+  The original `csa_ppe_v1` is kept as a reference copy and must not be used for evaluation.
+  Details: [docs/DATASETS.md](docs/DATASETS.md). The archive `csa_ppe_v1.zip` is never committed.
+- **Training** (on Colab GPU; see [docs/COLAB_TRAINING_NOTEBOOK.md](docs/COLAB_TRAINING_NOTEBOOK.md)):
+  ```bash
+  python training/train_detector.py --experiment configs/experiments/baseline_yolo11n.yaml
+  python training/train_detector.py --experiment configs/experiments/baseline_yolo11n.yaml --device cuda --epochs 1  # smoke test
+  ```
+  The launcher resolves the dataset path itself and records its effective settings in
+  `experiment_summary.json`.
+- **Ablation:** `python evaluation/run_ablation.py --detector <weights> --images datasets/csa_ppe_v1_clean/images/test`
+  (six cumulative configurations in `configs/ablation.yaml`).
+- **Metrics:** `python evaluation/build_metrics_summary.py` writes `results/metrics_summary.json` from
+  artifacts on disk. A missing artifact is reported as `NOT MEASURED`. See [docs/EVALUATION.md](docs/EVALUATION.md).
 
-**Algorithm:**
-- Matches workers frame-to-frame by maximum IoU overlap
-- Assigns new ID when match confidence drops below threshold (0.3)
-- Tracks age to remove inactive workers after 30 frames
-
-**Code:** `csa_yolo/tracking/tracker.py`
-
-### TSMM — Temporal Safety Memory Module
-
-Reduces false alarms by smoothing PPE status over time.
-
-**Algorithm:**
-- Maintains sliding window (default: 5 frames) of PPE presence per worker
-- Uses majority voting to determine confirmed PPE status
-- Tracks violation duration (frames without required PPE)
-- Confirmed status computed as: `present_frames / window_size >= threshold (0.7)`
-
-**Code:** `csa_yolo/tsmm/memory.py`
-
-### SCRM — Safety Compliance Reasoning Module
-
-Determines worker compliance based on confirmed PPE status.
-
-**Algorithm:**
-- Reads required PPE list from config (default: `[helmet, vest]`)
-- Compares confirmed PPE status against requirements
-- Produces: `COMPLIANT | NON_COMPLIANT | UNKNOWN` with confidence score
-
-**Code:** `csa_yolo/scrm/compliance.py`
-
-### CRAM — Construction Risk Assessment Module
-
-**⚠️ DISCLAIMER:** This is a PROTOTYPE RULE-BASED MODEL for demonstration only.
-It is NOT OSHA-certified and should NOT be used for real safety decisions.
-
-**Risk Scoring Algorithm:**
-```
-risk_score = (helmet_missing * 25.0)
-           + (vest_missing * 15.0)
-           + (violation_duration / 10 * 10.0)
-           + (low_confidence_penalty * 5.0)
-
-risk_level = LOW (< 25) | MEDIUM (25-60) | HIGH (> 60)
-```
-
-Risk factors are configurable in code. See `csa_yolo/cram/risk_assessment.py`.
+**No experimental results are reported yet.** No detector has been trained and no ground truth exists.
 
 ## Pipeline Orchestration
 
@@ -211,11 +179,14 @@ Apple MPS is auto-detected and enabled if available.
 
 ## Known Limitations
 
-1. **No real-time video:** Demo is single-image. Video processing requires frame extraction.
-2. **YOLO11n baseline:** Fine-tuned ICSD-YOLO weights not yet available; currently using COCO-pretrained YOLO11n.
-3. **Risk model is prototype:** Rule-based, not ML-trained. Weights are not optimized.
-4. **No zone awareness:** SCRM currently applies global compliance rules; zone-specific rules are future work.
-5. **Limited PPE classes:** Currently supports helmet and vest; other PPE requires dataset labeling.
+1. **No experimental evaluation yet.** No detector has been trained and no accuracy, mAP, FPS, tracking or compliance metric has been measured. See `docs/PROJECT_STATUS.md`.
+2. **Detector:** the demo uses the COCO-pretrained YOLO11n. The fine-tuned detector is not trained yet.
+3. **Single image demo:** video processing requires a frame loop; no real-time video path is measured.
+4. **Risk model is a prototype:** rule-based weights were chosen by hand. It is not validated.
+5. **Occlusion:** a PPE item hidden by occlusion looks like a missing one. See `docs/MODULES.md`.
+6. **No zone awareness:** SCRM applies global rules. Zone-specific rules are future work.
+7. **Limited PPE classes:** helmet and vest only.
+8. **Leakage:** use `datasets/csa_ppe_v1_clean` for evaluation. The original `csa_ppe_v1` contains duplicate images. See `docs/DATASETS.md`.
 
 ## Reproducibility
 
@@ -232,12 +203,26 @@ If you use this framework in research, please cite:
 @misc{csa-yolo-2026,
   title={CSA-YOLO: Construction Safety-Aware Detector with Worker-PPE Association,
          Temporal Memory, and Risk Assessment},
-  author={Your Name},
+  author={Siva Sankar B},
   year={2026},
-  howpublished={\url{https://github.com/yourusername/csa-yolo}}
+  howpublished={\url{https://github.com/Sivasankar2525/CSA-YOLO}}
 }
 ```
 
-## License
+## License and Third-Party Components
 
-See `LICENSE` in the repository root. Dataset licenses documented in `datasets/LICENSES.md`.
+**CSA-YOLO license: NOT YET DECIDED.** The repository does not yet include a LICENSE file.
+Until one is added, no reuse rights are granted beyond viewing the code.
+
+Third-party components and their terms:
+
+- **ICSD-YOLO** (`external/icsd_yolo`, PrintSC/code, pinned at `47018ed`): the submodule
+  contains **no LICENSE file**. Its model configuration header reads
+  `Ultralytics AGPL-3.0 License`, which indicates that it derives from Ultralytics code.
+  Its licence status is **unresolved**.
+- **Ultralytics** (runtime dependency, see `requirements.txt`): AGPL-3.0.
+- **Pretrained weights** `weights/yolo11n.pt`: Ultralytics COCO-pretrained weights, under the Ultralytics terms.
+- **Datasets** (CHV, SHWD): see `datasets/LICENSES.md`. Images are not redistributed.
+
+Because the dependencies are AGPL-3.0, the licence choice for CSA-YOLO must be made with
+these constraints in mind. This is a decision for the author.

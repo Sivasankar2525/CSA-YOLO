@@ -1,0 +1,99 @@
+{
+  "dataset": "csa_ppe_v1",
+  "classes": [
+    "person",
+    "helmet",
+    "no_helmet",
+    "vest",
+    "no_vest"
+  ],
+  "splits": {
+    "train": {
+      "images": 1516,
+      "valid_boxes": 8840,
+      "orphan_label_files": 0,
+      "boxes_per_class": {
+        "helmet": 4008,
+        "person": 3092,
+        "vest": 1441,
+        "no_helmet": 278,
+        "no_vest": 21
+      },
+      "image_sizes": {
+        "1280x720": 54,
+        "1200x800": 42,
+        "500x333": 34,
+        "1024x683": 30,
+        "600x400": 27
+      }
+    },
+    "valid": {
+      "images": 213,
+      "valid_boxes": 1221,
+      "empty_label_files": 1,
+      "orphan_label_files": 0,
+      "boxes_per_class": {
+        "helmet": 601,
+        "person": 410,
+        "vest": 177,
+        "no_vest": 14,
+        "no_helmet": 19
+      },
+      "image_sizes": {
+        "416x416": 9,
+        "416x415": 8,
+        "1200x800": 7,
+        "1920x1080": 5,
+        "800x533": 3
+      }
+    },
+    "test": {
+      "images": 195,
+      "valid_boxes": 1371,
+      "orphan_label_files": 0,
+      "boxes_per_class": {
+        "helmet": 659,
+        "person": 454,
+        "vest": 219,
+        "no_vest": 3,
+        "no_helmet": 36
+      },
+      "image_sizes": {
+        "1200x800": 11,
+        "500x333": 6,
+        "416x416": 6,
+        "1024x683": 5,
+        "1280x720": 4
+      }
+    }
+  },
+  "exact_duplicate_groups": 38,
+  "exact_duplicate_files": 38,
+  "duplicate_groups_by_split_relation": {
+    "cross_split": 12,
+    "within_train": 24,
+    "within_valid": 2
+  },
+  "duplicate_examples": [
+    [
+      "train/CHV_ppe_0001.jpg",
+      "test/SHWD_part2_001279.jpg"
+    ],
+    [
+      "train/CHV_ppe_0009.jpg",
+      "train/SHWD_part2_000332.jpg"
+    ],
+    [
+      "train/CHV_ppe_0032.jpg",
+      "train/SHWD_001512.jpg"
+    ],
+    [
+      "train/CHV_ppe_0056.jpg",
+      "train/SHWD_part2_000508.jpg"
+    ],
+    [
+      "train/CHV_ppe_0057.jpg",
+      "train/SHWD_part2_001068.jpg"
+    ]
+  ]
+}

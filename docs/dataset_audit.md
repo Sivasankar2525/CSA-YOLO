@@ -42,7 +42,8 @@ manifest committed at `datasets/splits/csa_ppe_v1_manifest.csv`).
 Composition: CHV (official splits) + CSS (official splits) + SHWD capped at 400 images
 (head boxes: hat→helmet, bare-head→no_helmet; seeded 80/10/10).
 
-- 1,924 images — 1,516 train / 213 valid / 195 test; 11,433 instances.
+- 1,924 images — 1,516 train / 213 valid / 195 test; 11,433 instances as stored at the time of this note.
+  **Recount on 2026-10-26: 11,432 instances (helmet 5,268, not 5,269).** See `docs/DATASETS.md` (known discrepancy).
 - person 3,956 · helmet 5,269 · vest 1,837 · no_helmet 333 · **no_vest 38** ⚠️
 
 ### Critical finding: negative-class imbalance

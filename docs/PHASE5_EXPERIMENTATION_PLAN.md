@@ -1,7 +1,7 @@
 # PHASE 5 — EXPERIMENTATION PLAN
 
-**Date:** 2026-10-14  
-**Status:** Ready for execution  
+**Date:** 2026-10-14
+**Status:** Implementation complete; pre-training audit complete; detector training not started (see docs/PROJECT_STATUS.md)
 **Target Duration:** 2–3 weeks (detector training: 1 week Colab; ablations + evaluation: 2 weeks local)
 
 ---
@@ -28,7 +28,7 @@ seed: 42
 model:
   family: ultralytics
   weights: yolo11n.pt   # COCO-pretrained weights
-data: datasets/csa_ppe_v1/data.yaml
+data: datasets/csa_ppe_v1_clean/data.yaml
 train:
   epochs: 100
   imgsz: 640
@@ -42,7 +42,7 @@ output:
   project: results/experiments
 ```
 
-**Rationale:** Standard baseline — pretrained on COCO, fine-tuned on PPE.  
+**Rationale:** Standard baseline — pretrained on COCO, fine-tuned on PPE.
 **Asymmetry Warning:** Has COCO weights; other experiments don't. Fair comparison requires scrutiny.
 
 #### Experiment 2: YOLO11n from Scratch
@@ -54,7 +54,7 @@ seed: 42
 model:
   family: ultralytics
   weights: yolo11n.yaml   # Architecture only; random init
-data: datasets/csa_ppe_v1/data.yaml
+data: datasets/csa_ppe_v1_clean/data.yaml
 train:
   epochs: 100
   imgsz: 640
@@ -68,7 +68,7 @@ output:
   project: results/experiments
 ```
 
-**Rationale:** Same budget as ICSD; controls pretrained-weights asymmetry.  
+**Rationale:** Same budget as ICSD; controls pretrained-weights asymmetry.
 **Expected:** Slower convergence than baseline_yolo11n; higher final loss.
 
 #### Experiment 3: ICSD-YOLO Restored (from Scratch)
@@ -81,7 +81,7 @@ model:
   family: icsd
   arch: x              # Only shipped YAML matching paper's described ConvStemBlock + FocusBlock
   scale: n             # 5.67M params / 17.7 GFLOPs (same size class as YOLO11n)
-data: datasets/csa_ppe_v1/data.yaml
+data: datasets/csa_ppe_v1_clean/data.yaml
 train:
   epochs: 100
   imgsz: 640
@@ -95,18 +95,18 @@ output:
   project: results/experiments
 ```
 
-**Rationale:** Faithful to ICSD-YOLO paper; documents restoration work (ADR 0002).  
-**Expected:** Slower training than YOLO11n (due to proprietary blocks); final performance TBD.  
+**Rationale:** Faithful to ICSD-YOLO paper; documents restoration work (ADR 0002).
+**Expected:** Slower training than YOLO11n (due to proprietary blocks); final performance TBD.
 **Known Issue:** MPS doesn't support non-divisible adaptive pooling — fallback to CPU for that op via `PYTORCH_ENABLE_MPS_FALLBACK=1` (already set in train_detector.py).
 
 ### A.3 Dataset Configuration
 
-**Path:** `datasets/csa_ppe_v1/`
+**Path:** `datasets/csa_ppe_v1_clean/`
 
 ```yaml
-path: /Users/sivasankar/workspace/final_project/CSA-YOLO/datasets/csa_ppe_v1
-train: images/train       # 1,516 images
-val: images/valid         # 213 images
+path: /Users/sivasankar/workspace/final_project/CSA-YOLO/datasets/csa_ppe_v1_clean
+train: images/train       # 1,481 images (clean; was 1,516)
+val: images/valid         # 210 images (clean; was 213)
 test: images/test         # 195 images
 nc: 5                     # number of classes
 names: ['person', 'helmet', 'no_helmet', 'vest', 'no_vest']
@@ -119,24 +119,24 @@ names: ['person', 'helmet', 'no_helmet', 'vest', 'no_vest']
 - **vest** (class 3): Safety vest/chest PPE
 - **no_vest** (class 4): Torso visible without vest
 
-**Source:** Merged CHV dataset + SHWD dataset (see `datasets/LICENSES.md` for attributions).  
-**Status:** Ready; no preprocessing needed.
+**Source:** Merged CHV dataset + SHWD dataset (see `datasets/LICENSES.md` for attributions).
+**Status:** Leakage-free clean version (`csa_ppe_v1_clean`) is the research dataset; see `docs/DATASETS.md`.
 
 ### A.4 Model Configuration
 
 #### YOLO11n (Ultralytics)
 
-**Pretrained weights:** `weights/yolo11n.pt` (5.4 MB, COCO 80-class)  
-**Fine-tuning:** Last layer adapted from 80 → 5 classes automatically by Ultralytics.  
-**Architecture:** Standard YOLOv11 nano.  
+**Pretrained weights:** `weights/yolo11n.pt` (5.4 MB, COCO 80-class)
+**Fine-tuning:** Last layer adapted from 80 → 5 classes automatically by Ultralytics.
+**Architecture:** Standard YOLOv11 nano.
 **Parameters:** ~2.6M (small, MacBook-friendly).
 
 #### ICSD-YOLO (Restored, x-arch @ n-scale)
 
-**Architecture:** ConvStemBlock (custom stem) + FocusBlock (custom pooling) + standard YOLOv8 backbone.  
-**Parameters:** 5.67M (larger than YOLO11n; same size class).  
-**GFLOPs:** 17.7 (paper: 116.8 for x-arch @ m-scale; restoration brings it down).  
-**Code:** Pinned at commit `47018ed` (submodule `external/icsd_yolo`); restoration patches in `training/icsd.py`.  
+**Architecture:** ConvStemBlock (custom stem) + FocusBlock (custom pooling) + standard YOLOv8 backbone.
+**Parameters:** 5.67M (larger than YOLO11n; same size class).
+**GFLOPs:** 17.7 (paper: 116.8 for x-arch @ m-scale; restoration brings it down).
+**Code:** Pinned at commit `47018ed` (submodule `external/icsd_yolo`); restoration patches in `training/icsd.py`.
 **Status:** Tested; forward pass verified on MPS.
 
 ### A.5 Training Configuration (All Experiments)
@@ -158,8 +158,8 @@ names: ['person', 'helmet', 'no_helmet', 'vest', 'no_vest']
 
 ### A.6 Colab GPU Configuration (Recommended)
 
-**GPU:** V100 or A100 (request if available, accept T4 as fallback).  
-**Runtime:** 4–6 hours per experiment (100 epochs, batch 16).  
+**GPU:** V100 or A100 (request if available, accept T4 as fallback).
+**Runtime:** 4–6 hours per experiment (100 epochs, batch 16).
 **Note:** Colab may limit GPU hours; space three separate training runs across different days if needed.
 
 ---
@@ -190,10 +190,10 @@ python training/train_detector.py \
   "experiment_name": "baseline_yolo11n",
   "detector_model": "YOLO11n (COCO-pretrained)",
   "detector_family": "ultralytics",
-  "dataset": "csa_ppe_v1",
+  "dataset": "csa_ppe_v1_clean",
   "dataset_split": {
-    "train": 1516,
-    "valid": 213,
+    "train": 1481,
+    "valid": 210,
     "test": 195
   },
   "training_config": {
@@ -245,9 +245,9 @@ Detector inference
        ↓
 Raw detections (xyxy, confidence, class)
        ↓
-WPAM: Assign PPE to workers (learned geometry)
+WPAM: Assign PPE to workers (geometric gate + Hungarian matching; no learning)
        ↓
-Tracking: Persistent worker IDs (learned matching)
+Tracking: Persistent worker IDs (IoU matching; no learning)
        ↓
 TSMM: Temporal smoothing (logic-based)
        ↓
@@ -263,20 +263,20 @@ Worker-level safety report
 | Component | Type | Learning | Status |
 |-----------|------|----------|--------|
 | **Detector** | Learned | Fine-tuned on CSA-PPE | Will train on Colab |
-| **WPAM** | Learned | Geometry (no training; design-based) | Ready |
-| **Tracking** | Logic-based | IoU matching (no training) | Ready |
-| **TSMM** | Logic-based | Majority voting + windowing (no training) | Ready |
-| **SCRM** | Rule-based | Config-driven compliance rules (no training) | Ready |
-| **CRAM** | Rule-based | Fixed risk coefficients (no training, not certified) | Ready |
+| **WPAM** | Rule-based (geometric) | Spatial gate + Hungarian matching (no training) | Implemented, unit tested; gate margin provisional |
+| **Tracking** | Logic-based | IoU matching, stale-track pruning (no training) | Implemented, unit tested |
+| **TSMM** | Logic-based | Sliding-window evidence + cleanup (no training) | Implemented, unit tested |
+| **SCRM** | Rule-based | Evidence-threshold compliance rules (no training) | Implemented, unit tested |
+| **CRAM** | Rule-based prototype | Fixed risk coefficients (no training, not certified) | Implemented, unit tested; not validated |
 
-**Claim:** WPAM + TSMM are the primary research contributions (temporal + associative logic).  
+**Hypothesis (NOT YET MEASURED):** WPAM and TSMM are the primary research contributions (associative and temporal logic).
 **Disclaimer:** CRAM is a prototype rule-based model, NOT a trained risk predictor.
 
 ### C.3 Demo (No Evaluation Yet)
 
 **Current Status:** Demo script runs on sample images.
 ```bash
-python scripts/demo.py datasets/raw/CSS/valid/example.jpg
+python scripts/demo.py datasets/csa_ppe_v1_clean/images/test/CHV_ppe_0003.jpg
 ```
 
 **Why no metrics yet:**
@@ -314,17 +314,17 @@ def run_ablation_experiment(detector_path, test_images_dir, enabled_modules):
     """
     detector = load_detector(detector_path)
     pipeline = SafetyPipeline(detector)
-    
+
     # Disable modules as specified
     pipeline.skip_wpam = not enabled_modules['wpam']
     pipeline.skip_tracking = not enabled_modules['tracking']
     # ...
-    
+
     results = []
     for image in test_images_dir:
         result = pipeline.process_frame(image)
         results.append(result)
-    
+
     # Compute metrics
     save_results(results, output_dir)
 ```
@@ -356,22 +356,22 @@ ablation/EXPERIMENT_NAME/
 
 ```json
 {
-  "precision": 0.92,
-  "recall": 0.87,
-  "mAP@0.5": 0.891,
-  "mAP@0.5:0.95": 0.654,
-  "fitness": 0.75,
+  "precision": "NOT YET MEASURED",
+  "recall": "NOT YET MEASURED",
+  "mAP@0.5": "NOT YET MEASURED",
+  "mAP@0.5:0.95": "NOT YET MEASURED",
+  "fitness": "NOT YET MEASURED",
   "per_class_mAP50_95": {
-    "person": 0.72,
-    "helmet": 0.68,
-    "no_helmet": 0.65,
-    "vest": 0.62,
-    "no_vest": 0.58
+    "person": "NOT YET MEASURED",
+    "helmet": "NOT YET MEASURED",
+    "no_helmet": "NOT YET MEASURED",
+    "vest": "NOT YET MEASURED",
+    "no_vest": "NOT YET MEASURED"
   }
 }
 ```
 
-**Location:** `results/experiments/EXPERIMENT_NAME/results.csv` (Ultralytics output)  
+**Location:** `results/experiments/EXPERIMENT_NAME/results.csv` (Ultralytics output)
 **Human-readable summary:** `results/experiments/EXPERIMENT_NAME/experiment_summary.json` (created by train_detector.py)
 
 ### E.2 WPAM Metrics
@@ -385,7 +385,7 @@ ablation/EXPERIMENT_NAME/
 - **Association Recall**: Correct matches / Total ground-truth matches
 - **Association F1**: Harmonic mean of precision and recall
 
-**Current Status:** NOT YET MEASURED (no ground truth).  
+**Current Status:** NOT YET MEASURED (no ground truth).
 **Placeholder:**
 ```json
 {
@@ -406,7 +406,7 @@ ablation/EXPERIMENT_NAME/
 - **ID Switches**: Number of erroneous ID changes per worker
 - **Tracking Precision/Recall**: If tracking swaps are counted as errors
 
-**Current Status:** NOT YET MEASURED (need annotated video).  
+**Current Status:** NOT YET MEASURED (need annotated video).
 **Placeholder:**
 ```json
 {
@@ -431,7 +431,7 @@ ablation/EXPERIMENT_NAME/
   - Violations triggered by detector noise (single occluded frame)
   - TSMM should reduce these by waiting for temporal confirmation
 
-**Current Status:** NOT YET MEASURED (CSA-Vid annotations incomplete).  
+**Current Status:** NOT YET MEASURED (CSA-Vid annotations incomplete).
 **Placeholder:**
 ```json
 {
@@ -453,7 +453,7 @@ ablation/EXPERIMENT_NAME/
 - **Compliance Precision**: Correct non-compliant / Total predicted non-compliant
 - **Compliance Recall**: Correct non-compliant / Total ground-truth non-compliant
 
-**Current Status:** NOT YET MEASURED (no ground truth).  
+**Current Status:** NOT YET MEASURED (no ground truth).
 **Placeholder:**
 ```json
 {
@@ -474,19 +474,17 @@ ablation/EXPERIMENT_NAME/
 **Example case study:**
 ```
 Scenario 1: Worker without helmet, no vest, standing > 30 sec
-Expected: HIGH risk
-Actual: HIGH (score 75/100)
-✓ Qualitatively correct
+Design expectation: HIGH risk
+Actual: NOT YET RUN (case study to be executed)
 
 Scenario 2: Worker with helmet + vest, briefly visible without helmet (1 frame)
-Expected: LOW risk (transient, TSMM filters)
-Actual: LOW (score 5/100)
-✓ Qualitatively correct
+Design expectation: LOW risk (transient, TSMM filters)
+Actual: NOT YET RUN (case study to be executed)
 
 Scenario 3: Multiple workers, one without helmet 5+ min
-Expected: Site risk = HIGH
-Actual: MEDIUM (score 55/100)
-Verdict: Reasonable, but tuning weights might be needed
+Design expectation: Site risk = HIGH
+Actual: NOT YET RUN (case study to be executed)
+Verdict: TBD after the case study is run
 ```
 
 **Current Status:** Case studies structure ready; awaiting ground truth + expert review.
@@ -501,10 +499,10 @@ Verdict: Reasonable, but tuning weights might be needed
   "git_commit": "20c270c...",
   "detector_metrics": {
     "baseline_yolo11n": {
-      "mAP@0.5": 0.891,
-      "mAP@0.5:0.95": 0.654,
-      "inference_fps": 45,
-      "training_time_hours": 2.5
+      "mAP@0.5": "NOT YET MEASURED",
+      "mAP@0.5:0.95": "NOT YET MEASURED",
+      "inference_fps": "NOT YET MEASURED",
+      "training_time_hours": "NOT YET MEASURED"
     }
   },
   "ablation_results": {
@@ -591,7 +589,7 @@ Example:
 
 ```bash
 # In Colab cell:
-!git clone https://github.com/YOUR_USERNAME/csa-yolo.git /content/csa-yolo
+!git clone https://github.com/Sivasankar2525/CSA-YOLO.git /content/csa-yolo
 %cd /content/csa-yolo
 ```
 
@@ -618,25 +616,25 @@ Example:
 
 **Option B: Verify dataset in repo**
 ```bash
-!ls datasets/csa_ppe_v1/images/train | head -5
-# Should show 1516 images
-!cat datasets/csa_ppe_v1/data.yaml
+!ls datasets/csa_ppe_v1_clean/images/train | head -5
+# Should show 1481 images (clean)
+!cat datasets/csa_ppe_v1_clean/data.yaml
 ```
 
 #### 5. Verify Dataset YAML
 
 ```python
 import yaml
-with open('datasets/csa_ppe_v1/data.yaml') as f:
+with open('datasets/csa_ppe_v1_clean/data.yaml') as f:
     cfg = yaml.safe_load(f)
 print(cfg)
-# Check: path points to /content/csa-yolo/datasets/csa_ppe_v1
+# Check: path points to /content/csa-yolo/datasets/csa_ppe_v1_clean
 ```
 
 **If paths are absolute (e.g., `/Users/...`), update them:**
 ```bash
-!sed -i 's|/Users.*CSA-YOLO|/content/csa-yolo|g' datasets/csa_ppe_v1/data.yaml
-!cat datasets/csa_ppe_v1/data.yaml
+# Not needed: training/train_detector.py writes a resolved copy of the dataset YAML automatically
+!cat datasets/csa_ppe_v1_clean/data.yaml
 ```
 
 #### 6. Train Baseline Detector
@@ -653,7 +651,7 @@ Epoch 1/100: loss=X.XX, val/loss=X.XX
 Epoch 2/100: loss=X.XX, val/loss=X.XX
 ...
 Epoch 100/100: loss=X.XX, val/loss=X.XX
-Experiment 'baseline_yolo11n' finished in 134.5s — summary at results/experiments/baseline_yolo11n/experiment_summary.json
+Experiment 'baseline_yolo11n' finished in XXX s — summary at results/experiments/baseline_yolo11n/experiment_summary.json
 ```
 
 **Estimated time:** 2–4 hours depending on GPU.
@@ -664,7 +662,7 @@ Experiment 'baseline_yolo11n' finished in 134.5s — summary at results/experime
 !python -c "
 from ultralytics import YOLO
 model = YOLO('results/experiments/baseline_yolo11n/weights/best.pt')
-results = model.val(data='datasets/csa_ppe_v1/data.yaml', device='cuda')
+results = model.val(data='datasets/csa_ppe_v1_clean/data.yaml', device='cuda')
 print(results)
 "
 ```
@@ -741,7 +739,7 @@ Before and after every experiment, record:
   },
   "experiment_config": {
     "config_file": "configs/experiments/baseline_yolo11n.yaml",
-    "dataset": "csa_ppe_v1",
+    "dataset": "csa_ppe_v1_clean",
     "dataset_version": "2026-07-28",
     "random_seed": 42,
     "epochs": 100,
@@ -749,10 +747,10 @@ Before and after every experiment, record:
     "image_size": 640
   },
   "results": {
-    "best_epoch": 47,
-    "best_mAP@0.5": 0.891,
-    "best_mAP@0.5:0.95": 0.654,
-    "training_time_hours": 2.5,
+    "best_epoch": "NOT YET MEASURED",
+    "best_mAP@0.5": "NOT YET MEASURED",
+    "best_mAP@0.5:0.95": "NOT YET MEASURED",
+    "training_time_hours": "NOT YET MEASURED",
     "weights_path": "results/experiments/baseline_yolo11n/weights/best.pt"
   }
 }
@@ -766,19 +764,19 @@ Save this as `results/experiments/EXPERIMENT_NAME/reproducibility_log.json`.
 
 ### I.1 What NOT to Do on MacBook
 
-❌ Do NOT train detectors locally (100 epochs, 1500 images)  
-❌ Do NOT load entire video datasets into RAM  
-❌ Do NOT run multiple experiments simultaneously  
-❌ Do NOT use batch > 16 or image_size > 640 locally  
+❌ Do NOT train detectors locally (100 epochs, 1500 images)
+❌ Do NOT load entire video datasets into RAM
+❌ Do NOT run multiple experiments simultaneously
+❌ Do NOT use batch > 16 or image_size > 640 locally
 ❌ Do NOT use workers > 0 on Mac (multiprocessing + small RAM)
 
 ### I.2 What IS Safe on MacBook
 
-✅ Inference (single images / video frame-by-frame)  
-✅ Ablation experiments (logic-based, no training)  
-✅ WPAM/TSMM/SCRM/CRAM evaluation (CPU-based)  
-✅ Metrics collection and visualization  
-✅ Dashboard and demo scripts  
+✅ Inference (single images / video frame-by-frame)
+✅ Ablation experiments (logic-based, no training)
+✅ WPAM/TSMM/SCRM/CRAM evaluation (CPU-based)
+✅ Metrics collection and visualization
+✅ Dashboard and demo scripts
 ✅ Report generation and writing
 
 ### I.3 Memory Budget
@@ -800,21 +798,21 @@ Save this as `results/experiments/EXPERIMENT_NAME/reproducibility_log.json`.
 
 ### ✅ DO
 
-✅ Record actual metrics from actual experiments  
-✅ Label unexecuted experiments as "NOT YET MEASURED"  
-✅ Mark CRAM as "prototype rule-based model, non-certified"  
-✅ Distinguish learned components from logic-based components  
-✅ Document dataset versions and splits  
-✅ Record git commits and reproducibility info  
+✅ Record actual metrics from actual experiments
+✅ Label unexecuted experiments as "NOT YET MEASURED"
+✅ Mark CRAM as "prototype rule-based model, non-certified"
+✅ Distinguish learned components from logic-based components
+✅ Document dataset versions and splits
+✅ Record git commits and reproducibility info
 
 ### ❌ DO NOT
 
-❌ Fabricate mAP, precision, recall, FPS  
-❌ Invent timing numbers  
-❌ Claim improvements without experiments  
-❌ Rename "rule-based" as "learned"  
-❌ Forget to save experiment configs  
-❌ Use different random seeds without noting it  
+❌ Fabricate mAP, precision, recall, FPS
+❌ Invent timing numbers
+❌ Claim improvements without experiments
+❌ Rename "rule-based" as "learned"
+❌ Forget to save experiment configs
+❌ Use different random seeds without noting it
 
 ---
 
@@ -823,7 +821,7 @@ Save this as `results/experiments/EXPERIMENT_NAME/reproducibility_log.json`.
 ### Pre-Training
 
 - [ ] Review experiment configs in `configs/experiments/`
-- [ ] Verify dataset in `datasets/csa_ppe_v1/` (1516/213/195 images)
+- [ ] Verify dataset in `datasets/csa_ppe_v1_clean/` (1481/210/195 images, clean)
 - [ ] Check class mapping (5 classes: person, helmet, no_helmet, vest, no_vest)
 - [ ] Clone repo to Colab
 - [ ] Install dependencies on Colab
@@ -942,6 +940,6 @@ results/metrics_summary.json
 
 ---
 
-**Author:** Claude (AI Assistant)  
-**Last updated:** 2026-10-14  
+**Author:** Claude (AI Assistant)
+**Last updated:** 2026-10-14
 **Status:** Ready for execution; awaiting user confirmation to start Colab training

@@ -24,3 +24,37 @@ experiments/*
 
 # OS
 .DS_Store
+csa_ppe_v1.zip
+
+# Python bytecode and tool caches (also at any depth)
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Dataset archives and large binaries (never commit; keep locally for Colab upload)
+*.zip
+*.tar
+*.tar.gz
+
+# Model weights and training run outputs (Ultralytics default run dir is runs/)
+*.pt
+*.pth
+*.onnx
+runs/
+wandb/
+
+# Logs and scratch
+*.log
+*.tmp
+
+# Small audit records (JSON only) are versioned; bulky results stay ignored
+!results/metrics_summary.json
+!results/PRE_TRAINING_AUDIT.json
+!results/dataset_audit.json
+!results/dataset_audit_clean.json
+
+# CSA-Vid: the provenance and licence log is versioned; the video clips are not
+!datasets/csa_vid/
+datasets/csa_vid/raw/
+!datasets/csa_vid/SOURCES.md

@@ -1,0 +1,625 @@
+{
+  "original_dataset": "csa_ppe_v1 (audit reference copy, not modified)",
+  "clean_dataset": "csa_ppe_v1_clean (authoritative research dataset)",
+  "hash_algorithm": "sha256",
+  "policy": "Exact duplicates across or within splits: keep one copy, preferring test > valid > train, then smallest file name. Removed images and their labels are listed in datasets/splits/csa_ppe_v1_clean_removed.csv. Images and labels are copied byte-for-byte.",
+  "original_split_counts": {
+    "train": {
+      "images": 1516,
+      "labels": 1516
+    },
+    "valid": {
+      "images": 213,
+      "labels": 213
+    },
+    "test": {
+      "images": 195,
+      "labels": 195
+    }
+  },
+  "original_total_images": 1924,
+  "duplicate_groups_found": 38,
+  "duplicate_hashes": [
+    "01642b71d36d7b3029c374b2496aa558048da33312f5db628b5e6dd6907a929f",
+    "10ea97a267211429226e577565e0d2491ad6a084fe50c27fbb33efda60030959",
+    "180f74f14f6fad7a94831ceab362fb9d048d30c87fb646f64b8bb63120c16802",
+    "18a656ac80206f7a96962835efc074f75017331f10b503debe8fee4cb60fce8b",
+    "2b7e75f69abc118bebce4f77ea53e15816cda1d089325f976612dace29b1593e",
+    "380f479ef6ecf9f7e07284a8350d04cc34c8e5dad7f983e149d0591d73087d1a",
+    "3fd48eb69778e575bb42c45c188b1e6f2b9e89c70b38840efc870b8bc795ce4e",
+    "42a51c45b2e4a3158da4a52106faca1d59adb11db53e1406d838493c92c4eb72",
+    "4da7912520a6da0a536a7c4840fd4f93d0f165a0335f6b727882f258f4ef84bf",
+    "4db22722925c918f4e4726c3e1bd375171390a2b758100b1b2ce9347ee1732f6",
+    "53ad5bcffb40cbcf67582788051f58f44ec3dc3ae8c8aecd3a97bb81963b7e67",
+    "56ed3fcc81d3261166c7d5a3984f26d1b3f2e71c71a8bcc01657627585797942",
+    "5ce8bd2deab747ebd9789a2056a52435ae7df55f6590859e4a4fe09e2e4e3256",
+    "6193ca3c2c8af92d7f4e230502bd9c71c83789653cfd68f4c1cec37deb577fcf",
+    "834c595f9984242cfccf13c1fe2a629dc7e266ae6c0e5d1ea5607da546f62846",
+    "83a51bd26790aa631cff8b63683070ca3ae64833ae245603b28ecfd3f3362885",
+    "943ccc340262cbd73fa233c626ff889d18ec806830b0180b051dffb12bbe8377",
+    "971f77edc668387efdaaec25f81b589126e9b3aa46f454958d0e45ed4615b9cc",
+    "9bb51ebc4cc8571c7348a3aef2243d3a5151d293f8b245540c41aca992b9586a",
+    "9cd2cfd585d9b67e71b886adcc451d77b2b6d366f9fc0cf50d9be9fc96b4ee7b",
+    "9e125f7fc868e40339a92b2a084237acc73187e11a335997dfb9f9a434c04a9e",
+    "9e2c1fa76736fc42908b3a247abdb6c22d4d84957e29602d27cb80f872b8cbf7",
+    "a0ef29433c166ad06aaed97456b91bb51b167205140f9cd25baf894c5b8e1e3f",
+    "a4184360bf70d27ae7738afd118c7897459d2e5f6298de545053b48ac6af4fd8",
+    "a92da7287628fe724d40064fbaa43fc03f854961d72ba4848ae602b4ca5b2678",
+    "ab6af8b4c9fc3cbed0bb990517b6d12ee9b893053ba5093f14a3aa375813e11c",
+    "b124122c948c9c0b1096d19cb0c2126bd172cdb047a089fe9dcc6aac7b0b37c4",
+    "b2d0d66ee8cb3042abfb14657b1bf6fd6bcf1141c833d4390ea8cfd15353f5bb",
+    "b56ae8aa913196c55fa336819351563d941a585a32b0c66dfcac58f9ec07dd42",
+    "b9c29a9f02dc4aa2c22c1146065f670df1bc90378cf0b4e8ee1e0c8ca72d6359",
+    "bfed204142f559c411580a97f36254acb6577d9314436dbc9de30f954c54ef09",
+    "c7a527209606bef6aa75c148c424db051ab881c3338d9889e9991fbc3715b665",
+    "cc9c73cd9ed5aedcbe9b02fa10094cbac6016b128783a2d2dc271102a41b9c40",
+    "cda09bac23b75caf7ea5d341a76353d3a64c49820fcbc1774fd4a7f46d06ca51",
+    "ce9de48cd7c4b495bceaec62246791df74c30c11ddeee4e95263c49019d8075b",
+    "df84e285ae9fbfde89ea85ac1c57c1f1a26395b9c9e86746f3fea041db616e16",
+    "e0e3dd351fc5663885b169dc2a309ea30a97618d43a8466681c2956f225176d1",
+    "fb47d7635e43453994ff141a8f8f5bcab3afe840fbc79e321e78510b541bdfcd"
+  ],
+  "duplicate_groups": [
+    {
+      "sha256": "01642b71d36d7b3029c374b2496aa558048da33312f5db628b5e6dd6907a929f",
+      "members": [
+        "train/CHV_ppe_0032.jpg",
+        "train/SHWD_001512.jpg"
+      ],
+      "kept": "train/CHV_ppe_0032.jpg",
+      "removed": [
+        "train/SHWD_001512.jpg"
+      ]
+    },
+    {
+      "sha256": "10ea97a267211429226e577565e0d2491ad6a084fe50c27fbb33efda60030959",
+      "members": [
+        "train/CHV_ppe_0279.jpg",
+        "train/SHWD_part2_000175.jpg"
+      ],
+      "kept": "train/CHV_ppe_0279.jpg",
+      "removed": [
+        "train/SHWD_part2_000175.jpg"
+      ]
+    },
+    {
+      "sha256": "180f74f14f6fad7a94831ceab362fb9d048d30c87fb646f64b8bb63120c16802",
+      "members": [
+        "test/CHV_ppe_0062.jpg",
+        "train/SHWD_000085.jpg"
+      ],
+      "kept": "test/CHV_ppe_0062.jpg",
+      "removed": [
+        "train/SHWD_000085.jpg"
+      ]
+    },
+    {
+      "sha256": "18a656ac80206f7a96962835efc074f75017331f10b503debe8fee4cb60fce8b",
+      "members": [
+        "test/CHV_ppe_0533.jpg",
+        "train/SHWD_000252.JPG"
+      ],
+      "kept": "test/CHV_ppe_0533.jpg",
+      "removed": [
+        "train/SHWD_000252.JPG"
+      ]
+    },
+    {
+      "sha256": "2b7e75f69abc118bebce4f77ea53e15816cda1d089325f976612dace29b1593e",
+      "members": [
+        "train/CHV_ppe_0274.jpg",
+        "train/SHWD_part2_000075.jpg"
+      ],
+      "kept": "train/CHV_ppe_0274.jpg",
+      "removed": [
+        "train/SHWD_part2_000075.jpg"
+      ]
+    },
+    {
+      "sha256": "380f479ef6ecf9f7e07284a8350d04cc34c8e5dad7f983e149d0591d73087d1a",
+      "members": [
+        "train/CHV_ppe_0070.jpg",
+        "train/SHWD_part2_000173.jpg"
+      ],
+      "kept": "train/CHV_ppe_0070.jpg",
+      "removed": [
+        "train/SHWD_part2_000173.jpg"
+      ]
+    },
+    {
+      "sha256": "3fd48eb69778e575bb42c45c188b1e6f2b9e89c70b38840efc870b8bc795ce4e",
+      "members": [
+        "valid/SHWD_000918.jpg",
+        "train/CHV_ppe_0239.jpg"
+      ],
+      "kept": "valid/SHWD_000918.jpg",
+      "removed": [
+        "train/CHV_ppe_0239.jpg"
+      ]
+    },
+    {
+      "sha256": "42a51c45b2e4a3158da4a52106faca1d59adb11db53e1406d838493c92c4eb72",
+      "members": [
+        "test/SHWD_part2_002313.jpg",
+        "train/CHV_ppe_0145.jpg"
+      ],
+      "kept": "test/SHWD_part2_002313.jpg",
+      "removed": [
+        "train/CHV_ppe_0145.jpg"
+      ]
+    },
+    {
+      "sha256": "4da7912520a6da0a536a7c4840fd4f93d0f165a0335f6b727882f258f4ef84bf",
+      "members": [
+        "train/CHV_ppe_0152.jpg",
+        "train/SHWD_000573.jpg"
+      ],
+      "kept": "train/CHV_ppe_0152.jpg",
+      "removed": [
+        "train/SHWD_000573.jpg"
+      ]
+    },
+    {
+      "sha256": "4db22722925c918f4e4726c3e1bd375171390a2b758100b1b2ce9347ee1732f6",
+      "members": [
+        "train/CHV_ppe_0325.jpg",
+        "train/SHWD_001342.jpg"
+      ],
+      "kept": "train/CHV_ppe_0325.jpg",
+      "removed": [
+        "train/SHWD_001342.jpg"
+      ]
+    },
+    {
+      "sha256": "53ad5bcffb40cbcf67582788051f58f44ec3dc3ae8c8aecd3a97bb81963b7e67",
+      "members": [
+        "test/SHWD_part2_000983.jpg",
+        "train/CHV_ppe_0276.jpg"
+      ],
+      "kept": "test/SHWD_part2_000983.jpg",
+      "removed": [
+        "train/CHV_ppe_0276.jpg"
+      ]
+    },
+    {
+      "sha256": "56ed3fcc81d3261166c7d5a3984f26d1b3f2e71c71a8bcc01657627585797942",
+      "members": [
+        "train/CHV_ppe_0477.jpg",
+        "train/SHWD_part2_000391.jpg"
+      ],
+      "kept": "train/CHV_ppe_0477.jpg",
+      "removed": [
+        "train/SHWD_part2_000391.jpg"
+      ]
+    },
+    {
+      "sha256": "5ce8bd2deab747ebd9789a2056a52435ae7df55f6590859e4a4fe09e2e4e3256",
+      "members": [
+        "train/CHV_ppe_0425.jpg",
+        "train/SHWD_part2_000449.jpg"
+      ],
+      "kept": "train/CHV_ppe_0425.jpg",
+      "removed": [
+        "train/SHWD_part2_000449.jpg"
+      ]
+    },
+    {
+      "sha256": "6193ca3c2c8af92d7f4e230502bd9c71c83789653cfd68f4c1cec37deb577fcf",
+      "members": [
+        "train/CHV_ppe_0225.jpg",
+        "train/SHWD_part2_000334.jpg"
+      ],
+      "kept": "train/CHV_ppe_0225.jpg",
+      "removed": [
+        "train/SHWD_part2_000334.jpg"
+      ]
+    },
+    {
+      "sha256": "834c595f9984242cfccf13c1fe2a629dc7e266ae6c0e5d1ea5607da546f62846",
+      "members": [
+        "train/CHV_ppe_0089.jpg",
+        "train/SHWD_part2_000909.jpg"
+      ],
+      "kept": "train/CHV_ppe_0089.jpg",
+      "removed": [
+        "train/SHWD_part2_000909.jpg"
+      ]
+    },
+    {
+      "sha256": "83a51bd26790aa631cff8b63683070ca3ae64833ae245603b28ecfd3f3362885",
+      "members": [
+        "train/CHV_ppe_0204.jpg",
+        "train/SHWD_001469.jpg"
+      ],
+      "kept": "train/CHV_ppe_0204.jpg",
+      "removed": [
+        "train/SHWD_001469.jpg"
+      ]
+    },
+    {
+      "sha256": "943ccc340262cbd73fa233c626ff889d18ec806830b0180b051dffb12bbe8377",
+      "members": [
+        "train/CHV_ppe_0445.jpg",
+        "train/SHWD_part2_001484.jpg"
+      ],
+      "kept": "train/CHV_ppe_0445.jpg",
+      "removed": [
+        "train/SHWD_part2_001484.jpg"
+      ]
+    },
+    {
+      "sha256": "971f77edc668387efdaaec25f81b589126e9b3aa46f454958d0e45ed4615b9cc",
+      "members": [
+        "test/SHWD_part2_000908.jpg",
+        "train/CHV_ppe_0178.jpg"
+      ],
+      "kept": "test/SHWD_part2_000908.jpg",
+      "removed": [
+        "train/CHV_ppe_0178.jpg"
+      ]
+    },
+    {
+      "sha256": "9bb51ebc4cc8571c7348a3aef2243d3a5151d293f8b245540c41aca992b9586a",
+      "members": [
+        "train/CHV_ppe_0124.jpg",
+        "train/SHWD_001348.jpg"
+      ],
+      "kept": "train/CHV_ppe_0124.jpg",
+      "removed": [
+        "train/SHWD_001348.jpg"
+      ]
+    },
+    {
+      "sha256": "9cd2cfd585d9b67e71b886adcc451d77b2b6d366f9fc0cf50d9be9fc96b4ee7b",
+      "members": [
+        "valid/CHV_ppe_0114.jpg",
+        "train/SHWD_part2_000936.jpg"
+      ],
+      "kept": "valid/CHV_ppe_0114.jpg",
+      "removed": [
+        "train/SHWD_part2_000936.jpg"
+      ]
+    },
+    {
+      "sha256": "9e125f7fc868e40339a92b2a084237acc73187e11a335997dfb9f9a434c04a9e",
+      "members": [
+        "train/CHV_ppe_0009.jpg",
+        "train/SHWD_part2_000332.jpg"
+      ],
+      "kept": "train/CHV_ppe_0009.jpg",
+      "removed": [
+        "train/SHWD_part2_000332.jpg"
+      ]
+    },
+    {
+      "sha256": "9e2c1fa76736fc42908b3a247abdb6c22d4d84957e29602d27cb80f872b8cbf7",
+      "members": [
+        "valid/CHV_ppe_0411.jpg",
+        "valid/SHWD_001617.jpg"
+      ],
+      "kept": "valid/CHV_ppe_0411.jpg",
+      "removed": [
+        "valid/SHWD_001617.jpg"
+      ]
+    },
+    {
+      "sha256": "a0ef29433c166ad06aaed97456b91bb51b167205140f9cd25baf894c5b8e1e3f",
+      "members": [
+        "train/CHV_ppe_0196.jpg",
+        "train/SHWD_000421.jpg"
+      ],
+      "kept": "train/CHV_ppe_0196.jpg",
+      "removed": [
+        "train/SHWD_000421.jpg"
+      ]
+    },
+    {
+      "sha256": "a4184360bf70d27ae7738afd118c7897459d2e5f6298de545053b48ac6af4fd8",
+      "members": [
+        "train/CHV_ppe_0262.jpg",
+        "train/SHWD_part2_000599.jpg"
+      ],
+      "kept": "train/CHV_ppe_0262.jpg",
+      "removed": [
+        "train/SHWD_part2_000599.jpg"
+      ]
+    },
+    {
+      "sha256": "a92da7287628fe724d40064fbaa43fc03f854961d72ba4848ae602b4ca5b2678",
+      "members": [
+        "train/CHV_ppe_0553.jpg",
+        "train/SHWD_000405.jpg"
+      ],
+      "kept": "train/CHV_ppe_0553.jpg",
+      "removed": [
+        "train/SHWD_000405.jpg"
+      ]
+    },
+    {
+      "sha256": "ab6af8b4c9fc3cbed0bb990517b6d12ee9b893053ba5093f14a3aa375813e11c",
+      "members": [
+        "test/SHWD_part2_001279.jpg",
+        "train/CHV_ppe_0001.jpg"
+      ],
+      "kept": "test/SHWD_part2_001279.jpg",
+      "removed": [
+        "train/CHV_ppe_0001.jpg"
+      ]
+    },
+    {
+      "sha256": "b124122c948c9c0b1096d19cb0c2126bd172cdb047a089fe9dcc6aac7b0b37c4",
+      "members": [
+        "train/CHV_ppe_0243.jpg",
+        "train/SHWD_000854.jpg"
+      ],
+      "kept": "train/CHV_ppe_0243.jpg",
+      "removed": [
+        "train/SHWD_000854.jpg"
+      ]
+    },
+    {
+      "sha256": "b2d0d66ee8cb3042abfb14657b1bf6fd6bcf1141c833d4390ea8cfd15353f5bb",
+      "members": [
+        "train/CHV_ppe_0205.jpg",
+        "train/SHWD_part2_000746.jpg"
+      ],
+      "kept": "train/CHV_ppe_0205.jpg",
+      "removed": [
+        "train/SHWD_part2_000746.jpg"
+      ]
+    },
+    {
+      "sha256": "b56ae8aa913196c55fa336819351563d941a585a32b0c66dfcac58f9ec07dd42",
+      "members": [
+        "train/CHV_ppe_0057.jpg",
+        "train/SHWD_part2_001068.jpg"
+      ],
+      "kept": "train/CHV_ppe_0057.jpg",
+      "removed": [
+        "train/SHWD_part2_001068.jpg"
+      ]
+    },
+    {
+      "sha256": "b9c29a9f02dc4aa2c22c1146065f670df1bc90378cf0b4e8ee1e0c8ca72d6359",
+      "members": [
+        "train/CHV_ppe_0056.jpg",
+        "train/SHWD_part2_000508.jpg"
+      ],
+      "kept": "train/CHV_ppe_0056.jpg",
+      "removed": [
+        "train/SHWD_part2_000508.jpg"
+      ]
+    },
+    {
+      "sha256": "bfed204142f559c411580a97f36254acb6577d9314436dbc9de30f954c54ef09",
+      "members": [
+        "valid/CHV_ppe_0388.jpg",
+        "valid/SHWD_000546.jpg"
+      ],
+      "kept": "valid/CHV_ppe_0388.jpg",
+      "removed": [
+        "valid/SHWD_000546.jpg"
+      ]
+    },
+    {
+      "sha256": "c7a527209606bef6aa75c148c424db051ab881c3338d9889e9991fbc3715b665",
+      "members": [
+        "test/CHV_ppe_0410.jpg",
+        "train/SHWD_part2_002005.jpg"
+      ],
+      "kept": "test/CHV_ppe_0410.jpg",
+      "removed": [
+        "train/SHWD_part2_002005.jpg"
+      ]
+    },
+    {
+      "sha256": "cc9c73cd9ed5aedcbe9b02fa10094cbac6016b128783a2d2dc271102a41b9c40",
+      "members": [
+        "valid/CHV_ppe_0426.jpg",
+        "train/SHWD_part2_001737.jpg"
+      ],
+      "kept": "valid/CHV_ppe_0426.jpg",
+      "removed": [
+        "train/SHWD_part2_001737.jpg"
+      ]
+    },
+    {
+      "sha256": "cda09bac23b75caf7ea5d341a76353d3a64c49820fcbc1774fd4a7f46d06ca51",
+      "members": [
+        "train/CHV_ppe_0232.jpg",
+        "train/SHWD_part2_000415.jpg"
+      ],
+      "kept": "train/CHV_ppe_0232.jpg",
+      "removed": [
+        "train/SHWD_part2_000415.jpg"
+      ]
+    },
+    {
+      "sha256": "ce9de48cd7c4b495bceaec62246791df74c30c11ddeee4e95263c49019d8075b",
+      "members": [
+        "train/CHV_ppe_0285.jpg",
+        "train/SHWD_part2_001458.jpg"
+      ],
+      "kept": "train/CHV_ppe_0285.jpg",
+      "removed": [
+        "train/SHWD_part2_001458.jpg"
+      ]
+    },
+    {
+      "sha256": "df84e285ae9fbfde89ea85ac1c57c1f1a26395b9c9e86746f3fea041db616e16",
+      "members": [
+        "test/CHV_ppe_0163.jpg",
+        "train/SHWD_part2_000007.jpg"
+      ],
+      "kept": "test/CHV_ppe_0163.jpg",
+      "removed": [
+        "train/SHWD_part2_000007.jpg"
+      ]
+    },
+    {
+      "sha256": "e0e3dd351fc5663885b169dc2a309ea30a97618d43a8466681c2956f225176d1",
+      "members": [
+        "test/CHV_ppe_0356.jpg",
+        "valid/SHWD_001637.jpg"
+      ],
+      "kept": "test/CHV_ppe_0356.jpg",
+      "removed": [
+        "valid/SHWD_001637.jpg"
+      ]
+    },
+    {
+      "sha256": "fb47d7635e43453994ff141a8f8f5bcab3afe840fbc79e321e78510b541bdfcd",
+      "members": [
+        "train/CHV_ppe_0484.jpg",
+        "train/SHWD_001490.jpg"
+      ],
+      "kept": "train/CHV_ppe_0484.jpg",
+      "removed": [
+        "train/SHWD_001490.jpg"
+      ]
+    }
+  ],
+  "duplicate_image_names_removed": [
+    "train/CHV_ppe_0001.jpg",
+    "train/CHV_ppe_0145.jpg",
+    "train/CHV_ppe_0178.jpg",
+    "train/CHV_ppe_0239.jpg",
+    "train/CHV_ppe_0276.jpg",
+    "train/SHWD_000085.jpg",
+    "train/SHWD_000252.JPG",
+    "train/SHWD_000405.jpg",
+    "train/SHWD_000421.jpg",
+    "train/SHWD_000573.jpg",
+    "train/SHWD_000854.jpg",
+    "train/SHWD_001342.jpg",
+    "train/SHWD_001348.jpg",
+    "train/SHWD_001469.jpg",
+    "train/SHWD_001490.jpg",
+    "train/SHWD_001512.jpg",
+    "train/SHWD_part2_000007.jpg",
+    "train/SHWD_part2_000075.jpg",
+    "train/SHWD_part2_000173.jpg",
+    "train/SHWD_part2_000175.jpg",
+    "train/SHWD_part2_000332.jpg",
+    "train/SHWD_part2_000334.jpg",
+    "train/SHWD_part2_000391.jpg",
+    "train/SHWD_part2_000415.jpg",
+    "train/SHWD_part2_000449.jpg",
+    "train/SHWD_part2_000508.jpg",
+    "train/SHWD_part2_000599.jpg",
+    "train/SHWD_part2_000746.jpg",
+    "train/SHWD_part2_000909.jpg",
+    "train/SHWD_part2_000936.jpg",
+    "train/SHWD_part2_001068.jpg",
+    "train/SHWD_part2_001458.jpg",
+    "train/SHWD_part2_001484.jpg",
+    "train/SHWD_part2_001737.jpg",
+    "train/SHWD_part2_002005.jpg",
+    "valid/SHWD_000546.jpg",
+    "valid/SHWD_001617.jpg",
+    "valid/SHWD_001637.jpg"
+  ],
+  "removed_count": 38,
+  "removed_by_split": {
+    "train": 35,
+    "valid": 3
+  },
+  "final_split_counts": {
+    "train": {
+      "images": 1481,
+      "labels": 1481
+    },
+    "valid": {
+      "images": 210,
+      "labels": 210
+    },
+    "test": {
+      "images": 195,
+      "labels": 195
+    }
+  },
+  "final_total_images": 1886,
+  "class_names": [
+    "person",
+    "helmet",
+    "no_helmet",
+    "vest",
+    "no_vest"
+  ],
+  "class_distribution_before": {
+    "per_split": {
+      "train": {
+        "person": 3092,
+        "helmet": 4008,
+        "no_helmet": 278,
+        "vest": 1441,
+        "no_vest": 21
+      },
+      "valid": {
+        "person": 410,
+        "helmet": 601,
+        "no_helmet": 19,
+        "vest": 177,
+        "no_vest": 14
+      },
+      "test": {
+        "person": 454,
+        "helmet": 659,
+        "no_helmet": 36,
+        "vest": 219,
+        "no_vest": 3
+      }
+    },
+    "all": {
+      "person": 3956,
+      "helmet": 5268,
+      "no_helmet": 333,
+      "vest": 1837,
+      "no_vest": 38
+    }
+  },
+  "class_distribution_after": {
+    "per_split": {
+      "train": {
+        "person": 3079,
+        "helmet": 3923,
+        "no_helmet": 272,
+        "vest": 1438,
+        "no_vest": 21
+      },
+      "valid": {
+        "person": 410,
+        "helmet": 594,
+        "no_helmet": 19,
+        "vest": 177,
+        "no_vest": 14
+      },
+      "test": {
+        "person": 454,
+        "helmet": 659,
+        "no_helmet": 36,
+        "vest": 219,
+        "no_vest": 3
+      }
+    },
+    "all": {
+      "person": 3943,
+      "helmet": 5176,
+      "no_helmet": 327,
+      "vest": 1834,
+      "no_vest": 38
+    }
+  },
+  "images_missing_labels_in_original": 0,
+  "images_missing_labels_in_clean": 0,
+  "verification": {
+    "cross_split_exact_overlap_groups": 0,
+    "within_split_duplicate_files": 0,
+    "images_without_labels": 0,
+    "labels_without_images": 0,
+    "classes_match_original": true,
+    "exact_image_leakage": 0
+  },
+  "exact_image_leakage": 0,
+  "statement": "EXACT IMAGE LEAKAGE: 0"
+}

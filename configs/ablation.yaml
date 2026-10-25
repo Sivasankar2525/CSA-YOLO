@@ -1,0 +1,16 @@
+# Ablation ladder for CSA-YOLO.
+#
+# Each configuration enables a cumulative set of modules. The detector always
+# runs. Prerequisites are enforced by csa_yolo/pipeline.py (MODULE_REQUIREMENTS):
+# TSMM needs WPAM + tracking, SCRM needs TSMM, CRAM needs SCRM.
+#
+# Run with evaluation/run_ablation.py; every configuration is executed for real
+# (no output blanking) and writes config.json, metrics.json and results.jsonl.
+
+ablation:
+  detector_only: []
+  detector_wpam: [wpam]
+  detector_wpam_tracking: [wpam, tracking]
+  detector_wpam_tracking_tsmm: [wpam, tracking, tsmm]
+  detector_wpam_tracking_tsmm_scrm: [wpam, tracking, tsmm, scrm]
+  full_csa_yolo: [wpam, tracking, tsmm, scrm, cram]
