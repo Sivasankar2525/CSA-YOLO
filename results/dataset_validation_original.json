@@ -1,0 +1,123 @@
+{
+  "dataset_root": "datasets/csa_ppe_v1",
+  "generated_utc": "2026-10-28T17:59:03+00:00",
+  "data_yaml_names": [
+    "person",
+    "helmet",
+    "no_helmet",
+    "vest",
+    "no_vest"
+  ],
+  "splits": {
+    "train": {
+      "images": 1516,
+      "label_files": 1516,
+      "valid_boxes": 8840,
+      "empty_label_files": 0,
+      "boxes_per_class": {
+        "person": 3092,
+        "helmet": 4008,
+        "no_helmet": 278,
+        "vest": 1441,
+        "no_vest": 21
+      },
+      "problems": {},
+      "expected_images": 1516,
+      "count_matches_expected": true
+    },
+    "valid": {
+      "images": 213,
+      "label_files": 213,
+      "valid_boxes": 1221,
+      "empty_label_files": 1,
+      "boxes_per_class": {
+        "person": 410,
+        "helmet": 601,
+        "no_helmet": 19,
+        "vest": 177,
+        "no_vest": 14
+      },
+      "problems": {},
+      "expected_images": 213,
+      "count_matches_expected": true
+    },
+    "test": {
+      "images": 195,
+      "label_files": 195,
+      "valid_boxes": 1371,
+      "empty_label_files": 0,
+      "boxes_per_class": {
+        "person": 454,
+        "helmet": 659,
+        "no_helmet": 36,
+        "vest": 219,
+        "no_vest": 3
+      },
+      "problems": {},
+      "expected_images": 195,
+      "count_matches_expected": true
+    }
+  },
+  "total_images": 1924,
+  "total_valid_boxes": 11432,
+  "expected_total": 1924,
+  "total_problems": 0,
+  "overlap": {
+    "exact_image_leakage": 12,
+    "cross_split_groups": [
+      [
+        "test/SHWD_part2_001279.jpg",
+        "train/CHV_ppe_0001.jpg"
+      ],
+      [
+        "test/SHWD_part2_002313.jpg",
+        "train/CHV_ppe_0145.jpg"
+      ],
+      [
+        "test/SHWD_part2_000908.jpg",
+        "train/CHV_ppe_0178.jpg"
+      ],
+      [
+        "train/CHV_ppe_0239.jpg",
+        "valid/SHWD_000918.jpg"
+      ],
+      [
+        "test/SHWD_part2_000983.jpg",
+        "train/CHV_ppe_0276.jpg"
+      ],
+      [
+        "test/CHV_ppe_0062.jpg",
+        "train/SHWD_000085.jpg"
+      ],
+      [
+        "test/CHV_ppe_0533.jpg",
+        "train/SHWD_000252.JPG"
+      ],
+      [
+        "test/CHV_ppe_0163.jpg",
+        "train/SHWD_part2_000007.jpg"
+      ],
+      [
+        "train/SHWD_part2_000936.jpg",
+        "valid/CHV_ppe_0114.jpg"
+      ],
+      [
+        "train/SHWD_part2_001737.jpg",
+        "valid/CHV_ppe_0426.jpg"
+      ],
+      [
+        "test/CHV_ppe_0410.jpg",
+        "train/SHWD_part2_002005.jpg"
+      ],
+      [
+        "test/CHV_ppe_0356.jpg",
+        "valid/SHWD_001637.jpg"
+      ]
+    ],
+    "within_split_duplicate_groups": 26,
+    "within_split_duplicate_files": 26,
+    "near_duplicate_leakage": "NOT MEASURED (exact hashing only)"
+  },
+  "examples": [],
+  "verdict": "FINDINGS PRESENT"
+}

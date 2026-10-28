@@ -44,39 +44,64 @@ def _read_json(path: Path) -> Optional[dict[str, Any]]:
     return json.loads(path.read_text())
 
 
-def detector_entry(name: str, project_root: Path) -> dict[str, Any]:
-    run_dir = project_root / "results" / "experiments" / name
-    summary_path = run_dir / "experiment_summary.json"
-    artifacts = {
-        "experiment_summary": str(summary_path.relative_to(project_root)) if summary_path.is_file() else NOT_MEASURED,
-        "training_curves": str((run_dir / "results.csv").relative_to(project_root))
-        if (run_dir / "results.csv").is_file() else NOT_MEASURED,
-        "confusion_matrix": str((run_dir / "confusion_matrix.png").relative_to(project_root))
-        if (run_dir / "confusion_matrix.png").is_file() else NOT_MEASURED,
-    }
-    summary = _read_json(summary_path)
-    if summary is None or not summary.get("metrics"):
-        return {
-            "status": NOT_MEASURED,
-            "reason": "no completed training run summary found" if summary is None
-            else "summary contains no validation metrics",
-            "metrics": {k: NOT_MEASURED for k in DETECTOR_KEYS.values()},
-            "per_class_mAP50_95": NOT_MEASURED,
-            "artifacts": artifacts,
-        }
-    raw = summary["metrics"]
-    metrics = {out: float(raw[src]) if src in raw else NOT_MEASURED for src, out in DETECTOR_KEYS.items()}
-    per_class = summary.get("per_class_map50_95") or NOT_MEASURED
+def _split_metrics(run_dir: Path, project_root: Path, split: str) -> dict[str, Any]:
+    path = run_dir / f"{split}_metrics.json"
+    if not path.is_file():
+        return {"status": NOT_MEASURED, "reason": f"{split}_metrics.json not found",
+                "metrics": {k: NOT_MEASURED for k in ("precision", "recall", "mAP@0.5", "mAP@0.5:0.95", "F1")},
+                "per_class": NOT_MEASURED, "source": str(path.relative_to(project_root))}
+    data = json.loads(path.read_text())
+    keys = ("precision", "recall", "mAP@0.5", "mAP@0.5:0.95", "F1")
     return {
         "status": "MEASURED",
-        "config": summary.get("config_file"),
-        "dataset_yaml": summary.get("resolved_dataset_yaml") or summary.get("dataset_yaml"),
-        "effective_train": summary.get("effective_train"),
-        "wall_seconds": summary.get("wall_seconds"),
-        "metrics": metrics,
-        "per_class_mAP50_95": per_class,
-        "artifacts": artifacts,
+        "metrics": {k: (data[k] if data.get(k) is not None else NOT_MEASURED) for k in keys},
+        "per_class": {
+            "precision": data.get("per_class_precision") or NOT_MEASURED,
+            "recall": data.get("per_class_recall") or NOT_MEASURED,
+            "F1": data.get("per_class_f1") or NOT_MEASURED,
+            "AP50": data.get("per_class_AP50") or NOT_MEASURED,
+            "AP50-95": data.get("per_class_AP50-95") or NOT_MEASURED,
+        },
+        "evaluation_settings": data.get("evaluation_settings"),
+        "unavailable_fields": data.get("unavailable"),
+        "source": str(path.relative_to(project_root)),
     }
+
+
+def detector_entry(name: str, project_root: Path) -> dict[str, Any]:
+    """Detector result. The reported result is the TEST split. Validation is shown separately.
+
+    Training-time validation values (from the Ultralytics training summary) are never
+    reported as test results.
+    """
+    run_dir = project_root / "results" / "experiments" / name
+    summary_path = run_dir / "experiment_summary.json"
+    summary = _read_json(summary_path)
+    test = _split_metrics(run_dir, project_root, "test")
+    val = _split_metrics(run_dir, project_root, "val")
+    entry = {
+        "status": test["status"],
+        "reported_split": "test",
+        "test": test,
+        "validation": val,
+        "artifacts": {
+            "experiment_summary": str(summary_path.relative_to(project_root)) if summary_path.is_file() else NOT_MEASURED,
+            "manifest": str((run_dir / "manifest.json").relative_to(project_root))
+            if (run_dir / "manifest.json").is_file() else NOT_MEASURED,
+            "training_curves": str((run_dir / "results.csv").relative_to(project_root))
+            if (run_dir / "results.csv").is_file() else NOT_MEASURED,
+            "test_confusion_matrix": str((run_dir / "eval_test" / "confusion_matrix.png").relative_to(project_root))
+            if (run_dir / "eval_test" / "confusion_matrix.png").is_file() else NOT_MEASURED,
+        },
+    }
+    if summary is not None and summary.get("config_file"):
+        entry["config"] = summary.get("config_file")
+        entry["effective_train"] = summary.get("effective_train")
+    if summary is None:
+        entry["reason"] = "no completed training run found"
+    elif test["status"] != "MEASURED":
+        entry["reason"] = "training summary exists but no test-split evaluation was written"
+    return entry
 
 
 def ablation_entry(project_root: Path) -> dict[str, Any]:

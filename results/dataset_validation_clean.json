@@ -1,0 +1,74 @@
+{
+  "dataset_root": "datasets/csa_ppe_v1_clean",
+  "generated_utc": "2026-10-28T17:58:50+00:00",
+  "data_yaml_names": [
+    "person",
+    "helmet",
+    "no_helmet",
+    "vest",
+    "no_vest"
+  ],
+  "splits": {
+    "train": {
+      "images": 1481,
+      "label_files": 1481,
+      "valid_boxes": 8733,
+      "empty_label_files": 0,
+      "boxes_per_class": {
+        "person": 3079,
+        "helmet": 3923,
+        "no_helmet": 272,
+        "vest": 1438,
+        "no_vest": 21
+      },
+      "problems": {},
+      "expected_images": 1481,
+      "count_matches_expected": true
+    },
+    "valid": {
+      "images": 210,
+      "label_files": 210,
+      "valid_boxes": 1214,
+      "empty_label_files": 1,
+      "boxes_per_class": {
+        "person": 410,
+        "helmet": 594,
+        "no_helmet": 19,
+        "vest": 177,
+        "no_vest": 14
+      },
+      "problems": {},
+      "expected_images": 210,
+      "count_matches_expected": true
+    },
+    "test": {
+      "images": 195,
+      "label_files": 195,
+      "valid_boxes": 1371,
+      "empty_label_files": 0,
+      "boxes_per_class": {
+        "person": 454,
+        "helmet": 659,
+        "no_helmet": 36,
+        "vest": 219,
+        "no_vest": 3
+      },
+      "problems": {},
+      "expected_images": 195,
+      "count_matches_expected": true
+    }
+  },
+  "total_images": 1886,
+  "total_valid_boxes": 11318,
+  "expected_total": 1886,
+  "total_problems": 0,
+  "overlap": {
+    "exact_image_leakage": 0,
+    "cross_split_groups": [],
+    "within_split_duplicate_groups": 0,
+    "within_split_duplicate_files": 0,
+    "near_duplicate_leakage": "NOT MEASURED (exact hashing only)"
+  },
+  "examples": [],
+  "verdict": "PASS"
+}

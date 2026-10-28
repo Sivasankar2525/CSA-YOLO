@@ -58,3 +58,5 @@ wandb/
 !datasets/csa_vid/
 datasets/csa_vid/raw/
 !datasets/csa_vid/SOURCES.md
+!results/dataset_validation_clean.json
+!results/dataset_validation_original.json
